@@ -1,7 +1,0 @@
-{
-    "config": {
-        "requests_interval_millis": "12000",
-        "alpaca_key_id": "AKZ3J0FNNG0KLGB6QU99",
-        "alpaca_private_key": "dZNYLzQGW76N5yGcdcTifSxiAkpLQfJ8a6vwYput"
-    }
-}
