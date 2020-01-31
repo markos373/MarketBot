@@ -23,13 +23,15 @@ if __name__ == "__main__":
         sys.exit()
 
     alpaca = AlpacaConnection(logger, key_id, secret_key)
-    account = alpaca.getAccountInformation()
+    #account = alpaca.getAccountInformation()
 
 
-    print(account)
-
-    tickers_list = ["TSLA", "MSFT"]
-    alpaca.createWatchlist(tickers_list)
+    #print(account)
+    r = alpaca.submitOrder("AAPL", 1, 'buy','market','gtc')
+    print(r)
+    # tickers_list = ["TSLA", "MSFT"]
+    # print(alpaca.listPositions())
+    #alpaca.createWatchlist(tickers_list)
 
     # wlist = alpaca.getWatchlist()
     # print(wlist)
