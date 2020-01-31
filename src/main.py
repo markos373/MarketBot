@@ -31,6 +31,8 @@ if __name__ == "__main__":
     print(account)
 
     alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")
+    bot = DiscordBot(discordToken, alpha)
+
     dataset = alpha.getSMAvalue()
     print(dataset)
 
@@ -39,7 +41,5 @@ if __name__ == "__main__":
 
     wlist = alpaca.getWatchlist()
     print(wlist)
-
-    bot = DiscordBot(discordToken)
 
     logging.shutdown()
