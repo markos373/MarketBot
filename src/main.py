@@ -1,6 +1,7 @@
 import alpaca_trade_api as tradeapi
 from alpaca.AlpacaConnection import AlpacaConnection
 from AlphaVantage.AlphaParser import AlphaParser
+from discordapi.DiscordBot import DiscordBot
 
 import json
 import logging
@@ -29,8 +30,8 @@ if __name__ == "__main__":
     account = alpaca.getAccountInformation()
     print(account)
 
-    alpha = AlphaParser(AlphaAPIKey)
-    dataset = alpha.getSMAvalue("MSFT", "weekly","10","open")
+    alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")
+    dataset = alpha.getSMAvalue()
     print(dataset)
 
     tickers_list = ["TSLA", "MSFT"]
@@ -38,5 +39,8 @@ if __name__ == "__main__":
 
     wlist = alpaca.getWatchlist()
     print(wlist)
+    discordToken = 'NjcyNDg0ODgxMjA4NDQyODk0.XjMKjA.EpbXb288bOR2G9RWGNHN2ceONy4'
+
+    bot = DiscordBot(discordToken)
 
     logging.shutdown()
