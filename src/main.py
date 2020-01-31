@@ -22,10 +22,10 @@ if __name__ == "__main__":
         key_id = data["config"]["alpaca_key_id"]
         secret_key = data["config"]["alpaca_private_key"]
         AlphaAPIKey = data["config"]["alphavantage_key"]
+        discordToken = data["config"]["discord_token"]
     except:
         logger.fatal("ERROR: failed to extract keys from configuration file located at \"%s\"" % CONFIGURATION_FILE_PATH)
         sys.exit()
-
     alpaca = AlpacaConnection(logger, key_id, secret_key)
     account = alpaca.getAccountInformation()
     print(account)
@@ -39,7 +39,6 @@ if __name__ == "__main__":
 
     wlist = alpaca.getWatchlist()
     print(wlist)
-    discordToken = 'NjcyNDg0ODgxMjA4NDQyODk0.XjMKjA.EpbXb288bOR2G9RWGNHN2ceONy4'
 
     bot = DiscordBot(discordToken)
 
