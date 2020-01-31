@@ -27,6 +27,15 @@ if __name__ == "__main__":
         logger.fatal("ERROR: failed to extract keys from configuration file located at \"%s\"" % CONFIGURATION_FILE_PATH)
         sys.exit()
     alpaca = AlpacaConnection(logger, key_id, secret_key)
+    #account = alpaca.getAccountInformation()
+
+
+    #print(account)
+   ## r = alpaca.submitOrder("AAPL", 1, 'buy','market','gtc')
+   # print(r)
+    # tickers_list = ["TSLA", "MSFT"]
+    # print(alpaca.listPositions())
+    #alpaca.createWatchlist(tickers_list)
     account = alpaca.getAccountInformation()
     print(account)
 
