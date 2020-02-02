@@ -25,25 +25,20 @@ if __name__ == "__main__":
         discordToken = data["config"]["discord_token"]
     except:
         logger.fatal("ERROR: failed to extract keys from configuration file located at \"%s\"" % CONFIGURATION_FILE_PATH)
+        print("settings file required!")
         sys.exit()
     alpaca = AlpacaConnection(logger, key_id, secret_key)
-    #account = alpaca.getAccountInformation()
 
-
-    #print(account)
    ## r = alpaca.submitOrder("AAPL", 1, 'buy','market','gtc')
    # print(r)
-    # tickers_list = ["TSLA", "MSFT"]
-    # print(alpaca.listPositions())
-    #alpaca.createWatchlist(tickers_list)
+    
     account = alpaca.getAccountInformation()
     print(account)
 
-    alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")
-    bot = DiscordBot(discordToken, alpha)
+    alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")    
 
-    dataset = alpha.getSMAvalue()
-    print(dataset)
+    # dataset = alpha.getSMAvalue()
+    # print(dataset)
 
     tickers_list = ["TSLA", "MSFT"]
     alpaca.createWatchlist(tickers_list)
@@ -51,4 +46,7 @@ if __name__ == "__main__":
     wlist = alpaca.getWatchlist()
     print(wlist)
 
+    bot = DiscordBot(discordToken, alpha, alpaca)
+
     logging.shutdown()
+
