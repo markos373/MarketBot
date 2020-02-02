@@ -1,0 +1,5 @@
+#ignore python.log
+.log
+
+#ignore pyc
+.pyc 
