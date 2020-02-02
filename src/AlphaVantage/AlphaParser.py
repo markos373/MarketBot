@@ -14,11 +14,7 @@ class AlphaParser:
         
     # Just a sample from the api documentation. 
     # To use other functions, check https://www.alphavantage.co/documentation/
-<<<<<<< HEAD
-    def getSMAvalue(self, company, interval, time_period, series_type):
-=======
     def getSMAvalue(self):
->>>>>>> 53ad648f7e3fb7146398f90be1503ad0c51d0761
         parameters = {
             'function' : 'SMA',
             'symbol' : self.symbol,
