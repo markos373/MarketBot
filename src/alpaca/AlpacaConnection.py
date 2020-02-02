@@ -4,7 +4,6 @@ import logging
 import requests
 
 API_WATCHLIST_URL = "https://paper-api.alpaca.markets/v2/watchlists"
-API_ORDERS_URL    = "https://paper-api.alpaca.markets/v2/orders"
 WATCHLIST_NAME = "mywatchlist"
 
 class AlpacaConnection:
@@ -14,23 +13,6 @@ class AlpacaConnection:
         self.logger = logger
         self.account_data = ""
         self.header = { "APCA-API-KEY-ID":key_id, "APCA-API-SECRET-KEY":secret_key}
-
-    def submitOrder(self, ticker, qty, side,ordertype,tz):
-        params = {
-            "symbol":ticker,
-            "qty":qty,
-            "side":side,
-            "type":ordertype,
-            "time_in_force":tz
-        }
-        response = requests.post(url=API_ORDERS_URL, params=params,headers=self.header)
-        print(response.text, response.status_code, sep="\n")
-
-    #     print(self.api.submit_order(    symbol=ticker,
-    # qty=qty,
-    # side=side,
-    # type=ordertype,
-    # time_in_force=tz))
 
     def getAccountInformation(self):
         try: 

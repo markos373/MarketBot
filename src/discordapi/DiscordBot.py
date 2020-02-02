@@ -19,9 +19,8 @@ class DiscordBot:
             if message.author == client.user:
                 return
             print(message.content)
-            input = message.content.split()
             msg = ''
-            user = message.author
+            input = message.content.split()
             if not isinstance(message.channel,discord.DMChannel):
             # messages in server
                 print("message in guild!")
@@ -30,8 +29,6 @@ class DiscordBot:
                     print("I have been summoned")
                     msg += self.respondMention()
             else:
-                if user not in self.userSettings.keys():
-                    self.userSettings[user] = {}
                 # messages in dm
                 # this is where we parse user messages
                 if 'help' in input:
@@ -57,8 +54,8 @@ class DiscordBot:
 
         client.run(token)
 
-    def getAlpha(self):
-        return self.alpha
+    def perv(self):
+        return 'it\'s not even monday yet, you dick!\n'
 
     def help(self):
         helpmenu = 'options:\n'
