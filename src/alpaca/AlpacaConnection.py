@@ -6,11 +6,12 @@ import requests
 API_WATCHLIST_URL = "https://paper-api.alpaca.markets/v2/watchlists"
 API_ORDERS_URL    = "https://paper-api.alpaca.markets/v2/orders"
 WATCHLIST_NAME = "mywatchlist"
+APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 
 class AlpacaConnection:
 
     def __init__(self, logger, key_id, secret_key):
-        self.api = tradeapi.REST(key_id, secret_key, api_version='v2') 
+        self.api = tradeapi.REST(key_id, secret_key,APCA_API_BASE_URL, api_version='v2') 
         self.logger = logger
         self.account_data = ""
         self.header = { "APCA-API-KEY-ID":key_id, "APCA-API-SECRET-KEY":secret_key}
@@ -23,8 +24,8 @@ class AlpacaConnection:
             "type":ordertype,
             "time_in_force":tz
         }
-        response = requests.post(url=API_ORDERS_URL, params=params,headers=self.header)
-        print(response.text, response.status_code, sep="\n")
+        r = self.api.submit_order(ticker,qty,side,ordertype,tz)
+        print(r)
 
     #     print(self.api.submit_order(    symbol=ticker,
     # qty=qty,

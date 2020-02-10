@@ -31,24 +31,24 @@ if __name__ == "__main__":
 
 
     #print(account)
-   ## r = alpaca.submitOrder("AAPL", 1, 'buy','market','gtc')
-   # print(r)
+    r = alpaca.submitOrder("AAPL", 1, 'buy','market','gtc')
+    print(r)
     # tickers_list = ["TSLA", "MSFT"]
     # print(alpaca.listPositions())
     #alpaca.createWatchlist(tickers_list)
-    account = alpaca.getAccountInformation()
-    print(account)
+    # account = alpaca.getAccountInformation()
+    # print(account)
 
-    alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")
-    dataset = alpha.getSMAvalue()
-    print(dataset)
+    # alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")
+    # dataset = alpha.getSMAvalue()
+    # print(dataset)
 
-    tickers_list = ["TSLA", "MSFT"]
-    alpaca.createWatchlist(tickers_list)
+    # tickers_list = ["TSLA", "MSFT"]
+    # alpaca.createWatchlist(tickers_list)
 
-    wlist = alpaca.getWatchlist()
-    print(wlist)
+    # wlist = alpaca.getWatchlist()
+    # print(wlist)
 
-    bot = DiscordBot(discordToken)
+    # bot = DiscordBot(discordToken)
 
     logging.shutdown()
