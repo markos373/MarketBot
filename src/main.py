@@ -2,7 +2,7 @@ import alpaca_trade_api as tradeapi
 from alpaca.AlpacaConnection import AlpacaConnection
 from AlphaVantage.AlphaParser import AlphaParser
 from discordapi.DiscordBot import DiscordBot
-
+from strats.longshort import LongShort
 import json
 import logging
 import sys
@@ -25,21 +25,17 @@ if __name__ == "__main__":
         discordToken = data["config"]["discord_token"]
     except:
         logger.fatal("ERROR: failed to extract keys from configuration file located at \"%s\"" % CONFIGURATION_FILE_PATH)
+        print("settings file required!")
         sys.exit()
     alpaca = AlpacaConnection(logger, key_id, secret_key)
-    #account = alpaca.getAccountInformation()
 
+   ## r = alpaca.submitOrder("AAPL", 1, 'buy','market','gtc')
+   # print(r)
+    
+    longshort = LongShort(key_id, secret_key)
+    longshort.run()
+    #alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")    
 
-    #print(account)
-    r = alpaca.submitOrder("AAPL", 1, 'buy','market','gtc')
-    print(r)
-    # tickers_list = ["TSLA", "MSFT"]
-    # print(alpaca.listPositions())
-    #alpaca.createWatchlist(tickers_list)
-    # account = alpaca.getAccountInformation()
-    # print(account)
-
-    # alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")
     # dataset = alpha.getSMAvalue()
     # print(dataset)
 
@@ -49,6 +45,7 @@ if __name__ == "__main__":
     # wlist = alpaca.getWatchlist()
     # print(wlist)
 
-    # bot = DiscordBot(discordToken)
+    #bot = DiscordBot(discordToken, alpha, alpaca)
 
     logging.shutdown()
+
