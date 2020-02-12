@@ -3,13 +3,15 @@ import threading
 import time
 import datetime
 
-API_KEY = "PK52ZBOBHRZXGSAHT9OD"
-API_SECRET = "1XHVagdIlVg0sAvzoQ5YVXGkXOvrLVF1XFqOfFkQ"
+API_KEY = None
+API_SECRET = None
 APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 
 
 class LongShort:
-  def __init__(self):
+  def __init__(self, _API_KEY, _API_SECRET):
+    API_KEY = _API_KEY
+    API_SECRET = _API_SECRET
     self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
 
     stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM', 'SNAP', 'SHOP', 'SPLK', 'BA', 'AMZN', 'SUI', 'SUN', 'TSLA', 'CGC', 'SPWR', 'NIO', 'CAT', 'MSFT', 'PANW', 'OKTA', 'TWTR', 'TM', 'RTN', 'ATVI', 'GS', 'BAC', 'MS', 'TWLO', 'QCOM', ]
@@ -321,7 +323,3 @@ class LongShort:
 
     # Sort the stocks in place by the percent change field (marked by pc).
     self.allStocks.sort(key=lambda x: x[1])
-
-# Run the LongShort class
-ls = LongShort()
-ls.run()
