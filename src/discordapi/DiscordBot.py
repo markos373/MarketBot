@@ -38,11 +38,19 @@ class DiscordBot:
                     msg = self.getdata()
                 elif 'watchlist' in input:
                     if 'create' in input:
-                        slist = input[input.index('create')+1:]
+                        slist = ' '.join(input[input.index('create')+1:])  #joins string in list
                         print('creating watchlist for ', slist)
                         msg = self.createWatchlist(slist)
                     elif 'view' in input:
-                        msg = self.viewWatchlist()    
+                        newname = ' '.join(input[input.index('view')+1:])
+                        if newname == 'all':
+                            msg = self.viewAllWatchlists()
+                        else:
+                            msg = self.viewWatchlist(newname)
+                        # msg = self.viewWatchlist()    
+                    elif 'delete' in input:
+                        dname = ' '.join(input[input.index('delete')+1:])
+                        msg = self.deleteWatchlist(dname)
                 elif 'add' in input:
                     i = input.index('add')
                     if not input[i+1]:
@@ -54,18 +62,18 @@ class DiscordBot:
 
         client.run(token)
 
-    def perv(self):
-        return 'it\'s not even monday yet, you dick!\n'
-
     def help(self):
         helpmenu = 'options:\n'
-        helpmenu += '\t-data\n'
-        helpmenu += '\t-stats\n'
-        helpmenu += '\t-add symbol\n' 
         helpmenu += '\t-watchlist:\n'
         helpmenu += '\t\t-create [inputs: \'symbol_0\',\'symbol_1\', ..]\n'
         helpmenu += '\t\t example: watchlist create MSFT TSLA\n'
         helpmenu += '\t\t-view\n'
+        helpmenu += '\t\t\t view all\n'
+        helpmenu += '\t\t\t returns the name of all watchlists\n'
+        helpmenu += '\t\t\t [watchlist name]\n'
+        helpmenu += '\t\t\t returns specified watchlist\n'
+        helpmenu += '\t\t-delete\n'
+        helpmenu += '\t\t example: watchlist delete [watchlistname]'
         return helpmenu
 
     def respondMention(self):
@@ -77,15 +85,37 @@ class DiscordBot:
         d = d[list(d.keys())[0]]
         return d
 
-
     def createWatchlist(self, watchlist):
         try:
             self.alpaca.createWatchlist(watchlist)
         except:
-            print('something fucked up')
+            print('something messed up')
         return "watchlist successfully created!"
+    
+    def deleteWatchlist(self,watchlist):
+        self.alpaca.deleteWatchlist(watchlist)
+        return "success!"
 
-    def viewWatchlist(self):
-        wlist = self.alpaca.getWatchlist()
-        print(wlist)
-        return 'yes'
+    def viewAllWatchlists(self):
+        nameslist = self.alpaca.getAllWatchlists()
+        return ', '.join(nameslist)
+
+    def viewWatchlist(self,name):
+        if name not in self.alpaca.watchlists.keys():
+            return 'please provide a valid watchlist name!'
+        wlist = self.alpaca.viewWatchlist(name)
+        returnstring = ''
+        for k,v in wlist.items():
+            if k == 'id' or k == 'account_id':
+                continue
+            if k == 'assets':
+                returnstring += k + ':\n'
+                for item in v:
+                    for k,v in item.items():
+                        if k == 'id':
+                            continue
+                        returnstring += '\t' + k + ': ' + str(v) + '\n'
+                    returnstring += '\t----------------------\n'
+            returnstring += k + ': ' + str(v) + '\n'
+
+        return returnstring
