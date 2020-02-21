@@ -2,7 +2,7 @@ import alpaca_trade_api as tradeapi
 from alpaca.AlpacaConnection import AlpacaConnection
 from AlphaVantage.AlphaParser import AlphaParser
 from discordapi.DiscordBot import DiscordBot
-
+from strats.longshort import LongShort
 import json
 import logging
 import sys
@@ -33,6 +33,7 @@ if __name__ == "__main__":
     alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")    
 
     bot = DiscordBot(discordToken, alpha, alpaca)
-
+    longshort = LongShort(key_id, secret_key)
+    longshort.run()
     logging.shutdown()
 
