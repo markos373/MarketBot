@@ -2,11 +2,11 @@ import alpaca_trade_api as tradeapi
 
 import logging
 import requests
+import json
 
 API_WATCHLIST_URL = "https://paper-api.alpaca.markets/v2/watchlists"
 API_ORDERS_URL    = "https://paper-api.alpaca.markets/v2/orders"
-WATCHLIST_NAME = "mywatchlist"
-APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
+API_ACCOUNT_URL   = "https://paper-api.alpaca.markets/v2/account"
 
 class AlpacaConnection:
 
@@ -15,6 +15,13 @@ class AlpacaConnection:
         self.logger = logger
         self.account_data = ""
         self.header = { "APCA-API-KEY-ID":key_id, "APCA-API-SECRET-KEY":secret_key}
+        
+        # stored by 'name' : 'id'
+        self.watchlists = {}
+
+        # initiating functions to grab values for use
+        self.getAccountInformation()
+        self.getWatchlists()
 
     def submitOrder(self, ticker, qty, side,ordertype,tz):
         params = {
@@ -27,18 +34,9 @@ class AlpacaConnection:
         r = self.api.submit_order(ticker,qty,side,ordertype,tz)
         print(r)
 
-    #     print(self.api.submit_order(    symbol=ticker,
-    # qty=qty,
-    # side=side,
-    # type=ordertype,
-    # time_in_force=tz))
-
     def getAccountInformation(self):
-        try: 
-            self.account_data = self.api.get_account()
-        except Exception as error:
-            self.account_data = self.buildErrorMessage(error)
-            self.logger.warning("Failed to get account information: " + self.account_data)
+        r = requests.get(url = API_ACCOUNT_URL,headers = self.header)
+        self.account_data = r.json()
         return self.account_data
 
     def getClock(self):
@@ -56,22 +54,46 @@ class AlpacaConnection:
     def addToWatchlist(self, tickers):
         pass
 
-    def createWatchlist(self, tickers):
-        params = { "name":WATCHLIST_NAME, "symbols":tickers }
-        response = requests.post(url=API_WATCHLIST_URL, params=params, headers=self.header)
-        print(response.text, response.status_code, sep="\n")
+    def createWatchlist(self, wname, tickers):
+        params = { "name":wname, "symbols":tickers }
+        data = json.dumps(params)
+        r = requests.post(url=API_WATCHLIST_URL, data=data, headers=self.header)
+        d = r.json()
+        id = d['id']
+        name = d['name']
+        self.watchlists[name] = id
+        return d
+    
+    # this function does not return anything. It should only be used inside the AlpacaConnection class.
+    # we do not want to call this everytime to get watchlists because we have limited requests
+    def getWatchlists(self):
+        r = requests.get(url=API_WATCHLIST_URL, headers=self.header)
+        d = r.json()
+        for watchlist in d:
+            id = watchlist['id']
+            name = watchlist['name']
+            self.watchlists[name] = id
+    
+    def getAllWatchlists(self):
+        return self.watchlists.keys()
 
-    def getWatchlist(self):
-        endpoint = API_WATCHLIST_URL + "/" + WATCHLIST_NAME
-        response = requests.get(url=endpoint, headers=self.header)
-        watchlist = response.json()
-        print(watchlist)
-        return watchlist
+    def viewWatchlist(self,name):
+        id = self.watchlists[name]
+        endpoint = API_WATCHLIST_URL+'/' + id
+        r = requests.get(url=endpoint,headers=self.header)
+        return r.json()
 
-    def removeSymbol(self, ticker):
-        endpoint = API_WATCHLIST_URL + "/" + WATCHLIST_NAME + "/" + ticker
+    def removeSymbol(self, ticker,name):
+        id = self.watchlists[name]        
+        endpoint = API_WATCHLIST_URL + "/" + name + "/" + ticker
         response = requests.delete(url=endpoint, headers=self.header)
         print(response.text, response.status_code, sep="\n")
+    
+    def deleteWatchlist(self,name):
+        id = self.watchlists[name]
+        endpoint = API_WATCHLIST_URL + '/' + id
+        requests.delete(url= endpoint,headers = self.header)
+        self.getWatchlists()
 
     def buildErrorMessage(self, error):
         return str(error) + str(error.status_code)   
