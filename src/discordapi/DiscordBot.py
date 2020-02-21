@@ -59,7 +59,6 @@ class DiscordBot:
                     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
                 await message.channel.send(msg)
-
     def run(self):
         self.client.run(self.token)
 
