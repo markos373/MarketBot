@@ -7,6 +7,7 @@ import json
 import logging
 import sys
 import requests
+import threading
 
 CONFIGURATION_FILE_PATH = "../settings.json"
 
@@ -30,10 +31,12 @@ if __name__ == "__main__":
 
     alpaca = AlpacaConnection(logger, key_id, secret_key)
 
-    alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")    
-
-    bot = DiscordBot(discordToken, alpha, alpaca)
+    alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")
     longshort = LongShort(key_id, secret_key)
-    longshort.run()
+    tTrading = threading.Thread(target=longshort.run)
+    tTrading.start()
+    bot = DiscordBot(discordToken, alpha, alpaca)
+    bot.run()
+    
     logging.shutdown()
 

@@ -3,20 +3,20 @@ from AlphaVantage.AlphaParser import AlphaParser
 
 class DiscordBot:
     def __init__(self,token,alpha, alpaca):
-        client = discord.Client()
-        print('bot ready to go')
+        self.client = discord.Client()
+        print('Discord bot ready to go!')
         self.alpha = alpha
         self.alpaca = alpaca
         self.wlist = None
         self.userSettings = {}
-
-        @client.event
+        self.token = token
+        @self.client.event
         async def on_ready():
-            print(f'{client.user} is a very bad bot')
+            print(f'{self.client.user} is a very bad bot')
 
-        @client.event
+        @self.client.event
         async def on_message(message):
-            if message.author == client.user:
+            if message.author == self.client.user:
                 return
             print(message.content)
             msg = ''
@@ -60,7 +60,8 @@ class DiscordBot:
             if msg:
                 await message.channel.send(msg)
 
-        client.run(token)
+    def run(self):
+        self.client.run(self.token)
 
     def help(self):
         helpmenu = 'options:\n'

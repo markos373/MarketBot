@@ -1,0 +1,8 @@
+[2020-02-21 17:06:56,144] WARNING: PyNaCl is not installed, voice will NOT be supported
+[2020-02-21 17:06:56,169] INFO: logging in using static token
+[2020-02-21 17:06:56,579] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
+[2020-02-21 17:06:56,582] INFO: Shard ID None has sent the IDENTIFY payload.
+[2020-02-21 17:06:56,739] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-tl6v",{"micros":47981,"calls":["discord-sessions-prd-1-36",{"micros":41889,"calls":["start_session",{"micros":38761,"calls":["api-prd-main-t5z7",{"micros":34718,"calls":["get_user",{"micros":2666},"add_authorized_ip",{"micros":2041},"get_guilds",{"micros":1880},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: 191bf0fc1e06eca55a27f67c723c42b5).
+[2020-02-21 17:07:00,850] INFO: Cleaning up tasks.
+[2020-02-21 17:07:00,850] INFO: Cleaning up after 4 tasks.
+[2020-02-21 17:07:01,214] INFO: Closing the event loop.

@@ -17,11 +17,11 @@ class AlpacaConnection:
         self.header = { "APCA-API-KEY-ID":key_id, "APCA-API-SECRET-KEY":secret_key}
         
         # stored by 'name' : 'id'
-        self.watchlists = {}
+        #self.watchlists = {}
 
         # initiating functions to grab values for use
-        self.getAccountInformation()
-        self.getWatchlists()
+        print(self.getAccountInformation())
+        #self.getWatchlists()
 
     def submitOrder(self, ticker, qty, side,ordertype,tz):
         params = {
@@ -35,8 +35,11 @@ class AlpacaConnection:
         print(r)
 
     def getAccountInformation(self):
-        r = requests.get(url = API_ACCOUNT_URL,headers = self.header)
-        self.account_data = r.json()
+        try:
+            r = requests.get(url = API_ACCOUNT_URL,headers = self.header)
+            self.account_data = r.json()
+        except Exception as e:
+            return "Failed to establish connection. Error: {}".format(e)
         return self.account_data
 
     def getClock(self):
