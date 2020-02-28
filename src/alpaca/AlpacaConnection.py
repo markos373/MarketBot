@@ -15,7 +15,8 @@ class AlpacaConnection:
         self.logger = logger
         self.account_data = ""
         self.header = { "APCA-API-KEY-ID":key_id, "APCA-API-SECRET-KEY":secret_key}
-        
+        self.key_id = key_id
+        self.secret_key = secret_key
         # stored by 'name' : 'id'
         #self.watchlists = {}
 
