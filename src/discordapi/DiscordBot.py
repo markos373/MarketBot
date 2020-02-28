@@ -1,4 +1,5 @@
 import discord
+from strats.longshort import LongShort
 from AlphaVantage.AlphaParser import AlphaParser
 
 class DiscordBot:
@@ -10,6 +11,7 @@ class DiscordBot:
         self.wlist = None
         self.userSettings = {}
         self.token = token
+        self.LSUniverse = set()
         @self.client.event
         async def on_ready():
             print(f'{self.client.user} is a very bad bot')
@@ -55,6 +57,32 @@ class DiscordBot:
                     i = input.index('add')
                     if not input[i+1]:
                         msg = 'please specify an input!'
+                elif '!longshort' in input:
+                    if '-add' in input:
+                        if ',' in input[input.index('-add')+1]:
+                            addlist = set(input[input.index('-add')+1].split(","))
+                            print("hit this")
+                        else:
+                            addlist = set(input[input.index('-add')+1])
+                        print(input)
+                        msg = 'adding {}'.format(list(addlist))
+                        self.LSUniverse.update(addlist)
+                    elif '-remove' in input:
+                        if ',' in input[input.index('-remove')+1]:
+                            rmlist = set(input[input.index('-remove')+1].split(","))
+                        else:
+                            rmlist = set(input[input.index('-remove')+1])
+                        msg = 'removing {}'.format(list(rmlist))
+                        for thing in rmlist:
+                            self.LSUniverse.discard(thing)
+                    elif '-run' in input:
+                        instance = LongShort(self.alpaca.key_id, self.alpaca.secret_key)
+                        instance.run()
+                    elif '-view' in input:
+                        msg = "Stock Universe: {}".format(list(self.LSUniverse))
+                    else:
+                        msg = """!longshort -[add/remove] TICKER,TICKER\n
+                               ex: !longshort -add AAPL,MMM"""
                 else:
                     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
