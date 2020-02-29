@@ -1,17 +1,39 @@
 import discord
 from strats.longshort import LongShort
 from AlphaVantage.AlphaParser import AlphaParser
+import threading
+import asyncio
+from multiprocessing import Pipe
 
 class DiscordBot:
     def __init__(self,token,alpha, alpaca):
         self.client = discord.Client()
-        print('Discord bot ready to go!')
         self.alpha = alpha
         self.alpaca = alpaca
         self.wlist = None
         self.userSettings = {}
         self.token = token
         self.LSUniverse = set()
+        self.instance = None
+        self.user = None
+    
+    #===================Piping====================
+
+        p1,p2 = Pipe(True)
+        e1 = threading.Event()  #FOR DISCORD TO SET ONLY
+        e2 = threading.Event()  #FOR ALGO TO SET ONLY
+        algoside_pipe = (p1,e2,e1)
+        disc_algo_pipe = (p2,e1,e2)
+    #=============================================
+
+        # piping protocol: calling recv on an empty pipe will cause the program to indefinitely hang
+        # to get around this, we use two threading.Event() with it as a triple.
+        # Each process will raise the event flag when sending data, and the receiveing end should rest it
+
+        self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,algoside_pipe)
+        self.algopipe = disc_algo_pipe
+        # self.listener = threading.Thread(target = self.waiter_thread)
+        
         @self.client.event
         async def on_ready():
             print(f'{self.client.user} is a very bad bot')
@@ -31,6 +53,11 @@ class DiscordBot:
                     print("I have been summoned")
                     msg += self.respondMention()
             else:
+                if not self.user:
+                    self.user = message.author
+                if message.author != self.user:
+                    await message.author.send('you are not my boss!')
+                    return
                 # messages in dm
                 # this is where we parse user messages
                 if 'help' in input:
@@ -76,19 +103,41 @@ class DiscordBot:
                         for thing in rmlist:
                             self.LSUniverse.discard(thing)
                     elif '-run' in input:
-                        instance = LongShort(self.alpaca.key_id, self.alpaca.secret_key)
-                        instance.run()
+                        self.instance = threading.Thread(target = self.algo.run)
+                        self.instance.start()
+                        print("started algo")
+                        msg= 'Successfully starting running algo!'
                     elif '-view' in input:
                         msg = "Stock Universe: {}".format(list(self.LSUniverse))
                     else:
                         msg = """!longshort -[add/remove] TICKER,TICKER\n
                                ex: !longshort -add AAPL,MMM"""
+                elif 'algo' in input:
+                    print("user said algo!")
+                    self.talk_to_algo("hey there algo")
                 else:
                     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
                 await message.channel.send(msg)
+
+    async def listener(self):
+        await self.client.wait_until_ready()
+        print('what does this say:', self.client.is_closed())
+        while not self.client.is_closed():
+            # make sure a valid user exists!
+            print('ima a pieec of shit')
+            if(self.algopipe[2].isSet()):
+                print('algo sent me a message:',self.algopipe[2].isSet())
+            if self.user and self.algopipe[2].isSet():
+                algomsg = self.algopipe[0].recv()
+                await self.user.send(algomsg)
+                self.algopipe[2].clear()
+                print("do i get here?")
+            await asyncio.sleep(3) 
+    
     def run(self):
-        self.client.run(self.token)
+        self.client.loop.create_task(self.listener())
+        self.client.run(self.token)        
 
     def help(self):
         helpmenu = 'options:\n'
@@ -147,3 +196,7 @@ class DiscordBot:
             returnstring += k + ': ' + str(v) + '\n'
 
         return returnstring
+
+    def talk_to_algo(self,msg):
+        self.algopipe[0].send(msg)
+        self.algopipe[1].set()
