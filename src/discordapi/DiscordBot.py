@@ -3,7 +3,40 @@ from strats.longshort import LongShort
 from AlphaVantage.AlphaParser import AlphaParser
 import threading
 import asyncio
-from multiprocessing import Pipe
+import multiprocessing as mp
+
+# piping protocol: calling recv on an empty pipe will cause the program to indefinitely hang
+# to get around this, we use two threading.Event() with it as a triple.
+# Each process will raise the event flag when sending data, and the receiveing end should reset it
+
+class Pipe:
+    def __init__(self,pipe,e1,e2):
+        self.pipe = pipe
+        self.sender = e1
+        self.receiver = e2
+    
+    # calling this function will not reset the flag. only the actual reading does
+    def has_data(self):
+        return self.receiver.is_set()
+    
+    def read(self):
+        data = None
+        if self.has_data():
+            data = self.pipe.recv()
+            self.receiver.clear()
+        return data
+
+    def send(self,data):
+        self.pipe.send(data)
+        self.sender.set()
+
+def create_pipe():
+        p1,p2 = mp.Pipe(True)
+        e1 = threading.Event()
+        e2 = threading.Event()
+        pipe1 = Pipe(p1,e1,e2)
+        pipe2 = Pipe(p2,e2,e1)
+        return pipe1,pipe2
 
 class DiscordBot:
     def __init__(self,token,alpha, alpaca):
@@ -19,19 +52,11 @@ class DiscordBot:
     
     #===================Piping====================
 
-        p1,p2 = Pipe(True)
-        e1 = threading.Event()  #FOR DISCORD TO SET ONLY
-        e2 = threading.Event()  #FOR ALGO TO SET ONLY
-        algoside_pipe = (p1,e2,e1)
-        disc_algo_pipe = (p2,e1,e2)
+        p1,p2 = create_pipe()
     #=============================================
 
-        # piping protocol: calling recv on an empty pipe will cause the program to indefinitely hang
-        # to get around this, we use two threading.Event() with it as a triple.
-        # Each process will raise the event flag when sending data, and the receiveing end should rest it
-
-        self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,algoside_pipe)
-        self.algopipe = disc_algo_pipe
+        self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,p2)
+        self.algopipe = p1
         # self.listener = threading.Thread(target = self.waiter_thread)
         
         @self.client.event
@@ -114,7 +139,7 @@ class DiscordBot:
                                ex: !longshort -add AAPL,MMM"""
                 elif 'algo' in input:
                     print("user said algo!")
-                    self.talk_to_algo("hey there algo")
+                    self.algopipe.send("hey there algo")
                 else:
                     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
@@ -122,18 +147,12 @@ class DiscordBot:
 
     async def listener(self):
         await self.client.wait_until_ready()
-        print('what does this say:', self.client.is_closed())
         while not self.client.is_closed():
             # make sure a valid user exists!
-            print('ima a pieec of shit')
-            if(self.algopipe[2].isSet()):
-                print('algo sent me a message:',self.algopipe[2].isSet())
-            if self.user and self.algopipe[2].isSet():
-                algomsg = self.algopipe[0].recv()
+            if self.user and self.algopipe.has_data():
+                algomsg = self.algopipe.read()
                 await self.user.send(algomsg)
-                self.algopipe[2].clear()
-                print("do i get here?")
-            await asyncio.sleep(3) 
+            await asyncio.sleep(1) 
     
     def run(self):
         self.client.loop.create_task(self.listener())
@@ -196,7 +215,3 @@ class DiscordBot:
             returnstring += k + ': ' + str(v) + '\n'
 
         return returnstring
-
-    def talk_to_algo(self,msg):
-        self.algopipe[0].send(msg)
-        self.algopipe[1].set()

@@ -332,13 +332,10 @@ class LongShort:
 
   def waiter_thread(self):
       while True:
-          if self.pipe[2].isSet():
-              msg = self.pipe[0].recv()
+          if self.pipe.has_data():
+              msg = self.pipe.read()
               print("discord said something!")
-              self.talk("hey discord this me")
-              self.pipe[2].clear()
+              self.pipe.send("hey discord this me")
 
   def talk(self,msg):
-    print("i am attempting to talk")
-    self.pipe[0].send(msg)
-    self.pipe[1].set()
+    self.pipe.send(msg)

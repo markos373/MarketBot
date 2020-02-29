@@ -22,7 +22,7 @@ class AlpacaConnection:
 
         # initiating functions to grab values for use
         print(self.getAccountInformation())
-        #self.getWatchlists()
+        self.getWatchlists()
 
     def submitOrder(self, ticker, qty, side,ordertype,tz):
         params = {
