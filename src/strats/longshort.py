@@ -2,6 +2,7 @@ import alpaca_trade_api as tradeapi
 import threading
 import time
 import datetime
+import multiprocessing as mp
 
 API_KEY = None
 API_SECRET = None
@@ -29,11 +30,17 @@ class LongShort:
     self.shortAmount = 0
     self.timeToClose = None
     self.listener = threading.Thread(target= self.waiter_thread)
+    self.threadQueue = mp.Queue()
 
     #===================Piping====================
     self.pipe = pipe  #(pipe,algoEvent,discordEvent)
 
     #=============================================
+
+  def kill(self):
+    while True:
+      job = self.threadQueue.get()
+      #job.terminate()
 
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
@@ -46,6 +53,7 @@ class LongShort:
     # Wait for market to open.
     self.talk("Waiting for market to open...")
     tAMO = threading.Thread(target=self.awaitMarketOpen)
+    self.threadQueue.put(tAMO)
     tAMO.start()
     tAMO.join()
     self.talk("Market opened.")

@@ -55,7 +55,7 @@ class DiscordBot:
         p1,p2 = create_pipe()
     #=============================================
 
-        self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,p2)
+        self.algo = None
         self.algopipe = p1
         # self.listener = threading.Thread(target = self.waiter_thread)
         
@@ -113,10 +113,8 @@ class DiscordBot:
                     if '-add' in input:
                         if ',' in input[input.index('-add')+1]:
                             addlist = set(input[input.index('-add')+1].split(","))
-                            print("hit this")
                         else:
                             addlist = set(input[input.index('-add')+1])
-                        print(input)
                         msg = 'adding {}'.format(list(addlist))
                         self.LSUniverse.update(addlist)
                     elif '-remove' in input:
@@ -128,10 +126,16 @@ class DiscordBot:
                         for thing in rmlist:
                             self.LSUniverse.discard(thing)
                     elif '-run' in input:
-                        self.instance = threading.Thread(target = self.algo.run)
-                        self.instance.start()
-                        print("started algo")
-                        msg= 'Successfully starting running algo!'
+                        if self.instance is None:
+                            msg = "Starting longshort!"
+                            self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,p2,self.LSUniverse)
+                            self.instance = mp.Process(target=self.algo.run)
+                            self.instance.start()
+                    elif '-kill' in input:
+                        if self.instance is not None:
+                            self.instance.terminate()
+                            self.algo.kill()
+                            msg = "terminated"
                     elif '-view' in input:
                         msg = "Stock Universe: {}".format(list(self.LSUniverse))
                     else:
