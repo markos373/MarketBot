@@ -1,6 +1,9 @@
-[2020-02-28 16:03:43,615] WARNING: PyNaCl is not installed, voice will NOT be supported
-[2020-02-28 16:03:43,618] INFO: logging in using static token
-[2020-02-28 16:03:43,963] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
-[2020-02-28 16:03:43,974] INFO: Shard ID None has sent the IDENTIFY payload.
-[2020-02-28 16:03:44,096] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-rxf1",{"micros":91712,"calls":["discord-sessions-prd-1-38",{"micros":90278,"calls":["start_session",{"micros":87874,"calls":["api-prd-main-pglv",{"micros":84277,"calls":["get_user",{"micros":7218},"add_authorized_ip",{"micros":4026},"get_guilds",{"micros":4480},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: a07471a61bb558893a90bdb28d02ebb3).
-[2020-02-28 16:04:30,228] WARNING: Heartbeat blocked for more than 5 seconds.
+[2020-02-28 17:27:22,390] WARNING: PyNaCl is not installed, voice will NOT be supported
+[2020-02-28 17:27:22,392] INFO: logging in using static token
+[2020-02-28 17:27:22,743] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
+[2020-02-28 17:27:22,746] INFO: Shard ID None has sent the IDENTIFY payload.
+[2020-02-28 17:27:22,829] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-k51f",{"micros":52227,"calls":["discord-sessions-prd-1-6",{"micros":47006,"calls":["start_session",{"micros":41888,"calls":["api-prd-main-zrbm",{"micros":36550,"calls":["get_user",{"micros":5444},"add_authorized_ip",{"micros":1585},"get_guilds",{"micros":1513},"coros_wait",{"micros":0}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1517,"calls":[]}]}]}] (Session ID: 78285a0abec81611ca0e3080c33fc220).
+[2020-02-28 17:28:17,204] INFO: Cleaning up tasks.
+[2020-02-28 17:28:17,206] INFO: Cleaning up after 5 tasks.
+[2020-02-28 17:28:27,223] INFO: All tasks finished cancelling.
+[2020-02-28 17:28:27,224] INFO: Closing the event loop.

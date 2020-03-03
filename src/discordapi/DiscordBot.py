@@ -1,6 +1,7 @@
 import discord
 from strats.longshort import LongShort
 from AlphaVantage.AlphaParser import AlphaParser
+from multiprocessing import Process
 
 class DiscordBot:
     def __init__(self,token,alpha, alpaca):
@@ -12,6 +13,7 @@ class DiscordBot:
         self.userSettings = {}
         self.token = token
         self.LSUniverse = set()
+        self.instance = None
         @self.client.event
         async def on_ready():
             print(f'{self.client.user} is a very bad bot')
@@ -76,8 +78,15 @@ class DiscordBot:
                         for thing in rmlist:
                             self.LSUniverse.discard(thing)
                     elif '-run' in input:
-                        instance = LongShort(self.alpaca.key_id, self.alpaca.secret_key)
-                        instance.run()
+                        if self.instance is None:
+                            msg = "Starting longshort!"
+                            ls = LongShort(self.alpaca.key_id, self.alpaca.secret_key)
+                            self.instance = Process(target=ls.run)
+                            self.instance.start()
+                    elif '-kill' in input:
+                        if self.instance is not None:
+                            self.instance.terminate()
+                            msg = "terminated"
                     elif '-view' in input:
                         msg = "Stock Universe: {}".format(list(self.LSUniverse))
                     else:
