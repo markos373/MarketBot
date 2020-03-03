@@ -18,11 +18,11 @@ class AlpacaConnection:
         self.key_id = key_id
         self.secret_key = secret_key
         # stored by 'name' : 'id'
-        #self.watchlists = {}
+        self.watchlists = {}
 
         # initiating functions to grab values for use
         print(self.getAccountInformation())
-        #self.getWatchlists()
+        self.getWatchlists()
 
     def submitOrder(self, ticker, qty, side,ordertype,tz):
         params = {

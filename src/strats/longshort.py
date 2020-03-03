@@ -2,6 +2,7 @@ import alpaca_trade_api as tradeapi
 import threading
 import time
 import datetime
+import multiprocessing as mp
 
 API_KEY = None
 API_SECRET = None
@@ -9,11 +10,10 @@ APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 
 
 class LongShort:
-  def __init__(self, _API_KEY, _API_SECRET, stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM']):
+  def __init__(self, _API_KEY, _API_SECRET, pipe, stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM']):
     API_KEY = _API_KEY
     API_SECRET = _API_SECRET
     self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
-    
     # Format the allStocks variable for use in the class.
     self.allStocks = []
     for stock in stockUniverse:
@@ -29,19 +29,34 @@ class LongShort:
     self.longAmount = 0
     self.shortAmount = 0
     self.timeToClose = None
+    self.listener = threading.Thread(target= self.waiter_thread)
+    self.threadQueue = mp.Queue()
+
+    #===================Piping====================
+    self.pipe = pipe  #(pipe,algoEvent,discordEvent)
+
+    #=============================================
+
+  def kill(self):
+    while True:
+      job = self.threadQueue.get()
+      #job.terminate()
 
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
+    self.listener.start()
+    print("started listner")
     orders = self.alpaca.list_orders(status="open")
     for order in orders:
       self.alpaca.cancel_order(order.id)
 
     # Wait for market to open.
-    print("Waiting for market to open...")
+    self.talk("Waiting for market to open...")
     tAMO = threading.Thread(target=self.awaitMarketOpen)
+    self.threadQueue.put(tAMO)
     tAMO.start()
     tAMO.join()
-    print("Market opened.")
+    self.talk("Market opened.")
 
     # Rebalance the portfolio every minute, making necessary trades.
     while True:
@@ -54,7 +69,7 @@ class LongShort:
 
       if(self.timeToClose < (60 * 15)):
         # Close all positions when 15 minutes til market close.
-        print("Market closing soon.  Closing positions.")
+        self.talk("Market closing soon.  Closing positions.")
 
         positions = self.alpaca.list_positions()
         for position in positions:
@@ -69,7 +84,7 @@ class LongShort:
           tSubmitOrder.join()
 
         # Run script again after market close for next trading day.
-        print("Sleeping until market close (15 minutes).")
+        self.talk("Sleeping until market close (15 minutes).")
         time.sleep(60 * 15)
       else:
         # Rebalance the portfolio.
@@ -86,7 +101,7 @@ class LongShort:
       openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
       currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
       timeToOpen = int((openingTime - currTime) / 60)
-      print(str(timeToOpen) + " minutes til market open.")
+      self.talk(str(timeToOpen) + " minutes til market open.")
       time.sleep(60)
       isOpen = self.alpaca.get_clock().is_open
 
@@ -100,8 +115,8 @@ class LongShort:
     for order in orders:
       self.alpaca.cancel_order(order.id)
 
-    print("We are taking a long position in: " + str(self.long))
-    print("We are taking a short position in: " + str(self.short))
+    self.talk("We are taking a long position in: " + str(self.long))
+    self.talk("We are taking a short position in: " + str(self.short))
     # Remove positions that are no longer in the short or long list, and make a list of positions that do not need to change.  Adjust position quantities if needed.
     executed = [[], []]
     positions = self.alpaca.list_positions()
@@ -297,13 +312,13 @@ class LongShort:
     if(qty > 0):
       try:
         self.alpaca.submit_order(stock, qty, side, "market", "day")
-        print("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
+        self.talk("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
         resp.append(True)
       except:
-        print("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
+        self.talk("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
         resp.append(False)
     else:
-      print("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
+      self.talk("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
       resp.append(True)
 
   # Get percent changes of the stock prices over the past 10 minutes.
@@ -322,3 +337,13 @@ class LongShort:
 
     # Sort the stocks in place by the percent change field (marked by pc).
     self.allStocks.sort(key=lambda x: x[1])
+
+  def waiter_thread(self):
+      while True:
+          if self.pipe.has_data():
+              msg = self.pipe.read()
+              print("discord said something!")
+              self.pipe.send("hey discord this me")
+
+  def talk(self,msg):
+    self.pipe.send(msg)

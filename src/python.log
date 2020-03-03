@@ -1,9 +1,8 @@
-[2020-02-28 17:27:22,390] WARNING: PyNaCl is not installed, voice will NOT be supported
-[2020-02-28 17:27:22,392] INFO: logging in using static token
-[2020-02-28 17:27:22,743] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
-[2020-02-28 17:27:22,746] INFO: Shard ID None has sent the IDENTIFY payload.
-[2020-02-28 17:27:22,829] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-k51f",{"micros":52227,"calls":["discord-sessions-prd-1-6",{"micros":47006,"calls":["start_session",{"micros":41888,"calls":["api-prd-main-zrbm",{"micros":36550,"calls":["get_user",{"micros":5444},"add_authorized_ip",{"micros":1585},"get_guilds",{"micros":1513},"coros_wait",{"micros":0}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1517,"calls":[]}]}]}] (Session ID: 78285a0abec81611ca0e3080c33fc220).
-[2020-02-28 17:28:17,204] INFO: Cleaning up tasks.
-[2020-02-28 17:28:17,206] INFO: Cleaning up after 5 tasks.
-[2020-02-28 17:28:27,223] INFO: All tasks finished cancelling.
-[2020-02-28 17:28:27,224] INFO: Closing the event loop.
+[2020-03-03 16:43:09,320] WARNING: PyNaCl is not installed, voice will NOT be supported
+[2020-03-03 16:43:09,324] INFO: logging in using static token
+[2020-03-03 16:43:09,598] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
+[2020-03-03 16:43:09,600] INFO: Shard ID None has sent the IDENTIFY payload.
+[2020-03-03 16:43:09,702] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-vkpb",{"micros":72242,"calls":["discord-sessions-prd-1-3",{"micros":70384,"calls":["start_session",{"micros":67023,"calls":["api-prd-main-tgd2",{"micros":61507,"calls":["get_user",{"micros":3585},"add_authorized_ip",{"micros":1976},"get_guilds",{"micros":22567},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: d18133262e2839e9ba5fae9f3c6248cc).
+[2020-03-03 16:48:10,352] INFO: Cleaning up tasks.
+[2020-03-03 16:48:10,353] INFO: Cleaning up after 5 tasks.
+[2020-03-03 16:48:10,523] INFO: Closing the event loop.

@@ -1,12 +1,46 @@
 import discord
 from strats.longshort import LongShort
 from AlphaVantage.AlphaParser import AlphaParser
-from multiprocessing import Process
+import threading
+import asyncio
+import multiprocessing as mp
+
+# piping protocol: calling recv on an empty pipe will cause the program to indefinitely hang
+# to get around this, we use two threading.Event() with it as a triple.
+# Each process will raise the event flag when sending data, and the receiveing end should reset it
+
+class Pipe:
+    def __init__(self,pipe,e1,e2):
+        self.pipe = pipe
+        self.sender = e1
+        self.receiver = e2
+    
+    # calling this function will not reset the flag. only the actual reading does
+    def has_data(self):
+        return self.receiver.is_set()
+    
+    def read(self):
+        data = None
+        if self.has_data():
+            data = self.pipe.recv()
+            self.receiver.clear()
+        return data
+
+    def send(self,data):
+        self.pipe.send(data)
+        self.sender.set()
+
+def create_pipe():
+        p1,p2 = mp.Pipe(True)
+        e1 = threading.Event()
+        e2 = threading.Event()
+        pipe1 = Pipe(p1,e1,e2)
+        pipe2 = Pipe(p2,e2,e1)
+        return pipe1,pipe2
 
 class DiscordBot:
     def __init__(self,token,alpha, alpaca):
         self.client = discord.Client()
-        print('Discord bot ready to go!')
         self.alpha = alpha
         self.alpaca = alpaca
         self.wlist = None
@@ -14,6 +48,17 @@ class DiscordBot:
         self.token = token
         self.LSUniverse = set()
         self.instance = None
+        self.user = None
+    
+    #===================Piping====================
+
+        p1,p2 = create_pipe()
+    #=============================================
+
+        self.algo = None
+        self.algopipe = p1
+        # self.listener = threading.Thread(target = self.waiter_thread)
+        
         @self.client.event
         async def on_ready():
             print(f'{self.client.user} is a very bad bot')
@@ -33,6 +78,11 @@ class DiscordBot:
                     print("I have been summoned")
                     msg += self.respondMention()
             else:
+                if not self.user:
+                    self.user = message.author
+                if message.author != self.user:
+                    await message.author.send('you are not my boss!')
+                    return
                 # messages in dm
                 # this is where we parse user messages
                 if 'help' in input:
@@ -63,10 +113,8 @@ class DiscordBot:
                     if '-add' in input:
                         if ',' in input[input.index('-add')+1]:
                             addlist = set(input[input.index('-add')+1].split(","))
-                            print("hit this")
                         else:
                             addlist = set(input[input.index('-add')+1])
-                        print(input)
                         msg = 'adding {}'.format(list(addlist))
                         self.LSUniverse.update(addlist)
                     elif '-remove' in input:
@@ -80,24 +128,39 @@ class DiscordBot:
                     elif '-run' in input:
                         if self.instance is None:
                             msg = "Starting longshort!"
-                            ls = LongShort(self.alpaca.key_id, self.alpaca.secret_key)
-                            self.instance = Process(target=ls.run)
+                            self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,p2,self.LSUniverse)
+                            self.instance = mp.Process(target=self.algo.run)
                             self.instance.start()
                     elif '-kill' in input:
                         if self.instance is not None:
                             self.instance.terminate()
+                            self.algo.kill()
                             msg = "terminated"
                     elif '-view' in input:
                         msg = "Stock Universe: {}".format(list(self.LSUniverse))
                     else:
                         msg = """!longshort -[add/remove] TICKER,TICKER\n
                                ex: !longshort -add AAPL,MMM"""
+                elif 'algo' in input:
+                    print("user said algo!")
+                    self.algopipe.send("hey there algo")
                 else:
                     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
                 await message.channel.send(msg)
+
+    async def listener(self):
+        await self.client.wait_until_ready()
+        while not self.client.is_closed():
+            # make sure a valid user exists!
+            if self.user and self.algopipe.has_data():
+                algomsg = self.algopipe.read()
+                await self.user.send(algomsg)
+            await asyncio.sleep(1) 
+    
     def run(self):
-        self.client.run(self.token)
+        self.client.loop.create_task(self.listener())
+        self.client.run(self.token)        
 
     def help(self):
         helpmenu = 'options:\n'
