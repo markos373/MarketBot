@@ -29,9 +29,10 @@ if __name__ == "__main__":
         print("settings file required!")
         sys.exit()
 
+    
     alpaca = AlpacaConnection(logger, key_id, secret_key)
     print('hhee')
-    print(alpaca.getAccountInformation())
+    # print(alpaca.getAccountInformation())
 
     alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")
     #longshort = LongShort(key_id, secret_key)
