@@ -31,7 +31,7 @@ class LongShort:
     self.listener = threading.Thread(target= self.waiter_thread)
 
     #===================Piping====================
-    self.pipe = pipe  #(pipe,algoEvent,discordEvent)
+    self.pipe = pipe 
 
     #=============================================
 
