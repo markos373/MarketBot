@@ -30,17 +30,17 @@ class LongShort:
     self.shortAmount = 0
     self.timeToClose = None
     self.listener = threading.Thread(target= self.waiter_thread)
-    self.threadQueue = mp.Queue()
 
+    self.stop = False
+  
     #===================Piping====================
     self.pipe = pipe 
 
     #=============================================
 
   def kill(self):
-    while True:
-      job = self.threadQueue.get()
-      #job.terminate()
+    self.talk("trying to stop...")
+    self.stop = True
 
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
@@ -53,13 +53,16 @@ class LongShort:
     # Wait for market to open.
     self.talk("Waiting for market to open...")
     tAMO = threading.Thread(target=self.awaitMarketOpen)
-    self.threadQueue.put(tAMO)
     tAMO.start()
     tAMO.join()
-    self.talk("Market opened.")
+    self.talk("if I reach here than I died!")
+    
+    # the waiting thread may be killed while the market is open, so check flag
+    if not self.stop:
+      self.talk("Market opened.")
 
     # Rebalance the portfolio every minute, making necessary trades.
-    while True:
+    while not self.stop:
 
       # Figure out when the market will close so we can prepare to sell beforehand.
       clock = self.alpaca.get_clock()
@@ -96,13 +99,13 @@ class LongShort:
   # Wait for market to open.
   def awaitMarketOpen(self):
     isOpen = self.alpaca.get_clock().is_open
-    while(not isOpen):
+    while not isOpen and not self.stop:
       clock = self.alpaca.get_clock()
       openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
       currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
       timeToOpen = int((openingTime - currTime) / 60)
       self.talk(str(timeToOpen) + " minutes til market open.")
-      time.sleep(60)
+      time.sleep(5)
       isOpen = self.alpaca.get_clock().is_open
 
   def rebalance(self):
@@ -342,8 +345,12 @@ class LongShort:
       while True:
           if self.pipe.has_data():
               msg = self.pipe.read()
-              print("discord said something!")
-              self.pipe.send("hey discord this me")
+              if msg == 'kill':
+                print('kill signal received from discord')
+                self.kill()
+              else:
+                print("discord said something!")
+                self.talk("hey discord this me")
 
   def talk(self,msg):
     self.pipe.send(msg)

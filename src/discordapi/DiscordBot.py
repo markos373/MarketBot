@@ -123,13 +123,14 @@ class DiscordBot:
                         if self.instance is None:
                             msg = "Starting longshort!"
                             self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,p2,self.LSUniverse)
-                            self.instance = mp.Process(target=self.algo.run)
+                            # self.instance = mp.Process(target=self.algo.run)
+                            self.instance = threading.Thread(target = self.algo.run)
                             self.instance.start()
                     elif '-kill' in input:
                         if self.instance is not None:
-                            self.instance.terminate()
-                            self.algo.kill()
-                            msg = "terminated"
+                            self.algopipe.send('kill')
+                            self.instance.join()
+                            msg = "if you can see this the longshort died"
                     elif '-view' in input:
                         msg = "Stock Universe: {}".format(list(self.LSUniverse))
                     else:
