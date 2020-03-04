@@ -33,7 +33,7 @@ class LongShort:
     self.threadQueue = mp.Queue()
 
     #===================Piping====================
-    self.pipe = pipe  #(pipe,algoEvent,discordEvent)
+    self.pipe = pipe 
 
     #=============================================
 

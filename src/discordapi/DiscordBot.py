@@ -10,33 +10,28 @@ import multiprocessing as mp
 # Each process will raise the event flag when sending data, and the receiveing end should reset it
 
 class Pipe:
-    def __init__(self,pipe,e1,e2):
-        self.pipe = pipe
-        self.sender = e1
-        self.receiver = e2
+    def __init__(self,q1,q2):
+        self.receiver = q1
+        self.sender = q2
     
     # calling this function will not reset the flag. only the actual reading does
     def has_data(self):
-        return self.receiver.is_set()
+        return not self.receiver.empty()
     
     def read(self):
-        data = None
-        if self.has_data():
-            data = self.pipe.recv()
-            self.receiver.clear()
-        return data
+        return self.receiver.get()
 
     def send(self,data):
-        self.pipe.send(data)
-        self.sender.set()
+        self.sender.put(data)
 
 def create_pipe():
-        p1,p2 = mp.Pipe(True)
-        e1 = threading.Event()
-        e2 = threading.Event()
-        pipe1 = Pipe(p1,e1,e2)
-        pipe2 = Pipe(p2,e2,e1)
-        return pipe1,pipe2
+    q1 = mp.Queue()
+    q2 = mp.Queue()
+
+    p1 = Pipe(q1,q2)
+    p2 = Pipe(q2,q1)
+
+    return p1,p2
 
 class DiscordBot:
     def __init__(self,token,alpha, alpaca):
@@ -53,11 +48,10 @@ class DiscordBot:
     #===================Piping====================
 
         p1,p2 = create_pipe()
-    #=============================================
 
+    #=============================================
         self.algo = None
         self.algopipe = p1
-        # self.listener = threading.Thread(target = self.waiter_thread)
         
         @self.client.event
         async def on_ready():
@@ -156,7 +150,7 @@ class DiscordBot:
             if self.user and self.algopipe.has_data():
                 algomsg = self.algopipe.read()
                 await self.user.send(algomsg)
-            await asyncio.sleep(1) 
+            await asyncio.sleep(1)
     
     def run(self):
         self.client.loop.create_task(self.listener())
