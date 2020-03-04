@@ -34,7 +34,7 @@ def create_pipe():
     return p1,p2
 
 class DiscordBot:
-    def __init__(self,token,alpha, alpaca):
+    def __init__(self,token,alpha, alpaca, logger):
         self.client = discord.Client()
         self.alpha = alpha
         self.alpaca = alpaca
@@ -44,6 +44,9 @@ class DiscordBot:
         self.LSUniverse = set()
         self.instance = None
         self.user = None
+        self.logger = logger
+
+        self.instance_kill = False        
     
     #===================Piping====================
 
@@ -120,17 +123,9 @@ class DiscordBot:
                         for thing in rmlist:
                             self.LSUniverse.discard(thing)
                     elif '-run' in input:
-                        if self.instance is None:
-                            msg = "Starting longshort!"
-                            self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,p2,self.LSUniverse)
-                            # self.instance = mp.Process(target=self.algo.run)
-                            self.instance = threading.Thread(target = self.algo.run)
-                            self.instance.start()
+                        msg = self.start_instance(p2)
                     elif '-kill' in input:
-                        if self.instance is not None:
-                            self.algopipe.send('kill')
-                            self.instance.join()
-                            msg = "if you can see this the longshort died"
+                        msg = await self.kill_instance()
                     elif '-view' in input:
                         msg = "Stock Universe: {}".format(list(self.LSUniverse))
                     else:
@@ -144,13 +139,34 @@ class DiscordBot:
             if msg:
                 await message.channel.send(msg)
 
+    async def kill_instance(self):
+        if self.instance is not None:
+            self.algopipe.send('kill')
+            while True:
+                if self.instance_kill:
+                    self.instance.join()
+                    print("REALLY REALLY KILLED IT!!!")
+                    self.instance = None
+                    return 'Algorithm successfully terminated!'
+                else:
+                    # this is dirty but this guy has to wait for the listner to 
+                    # confirm that the instance thread has wrapped up
+                    await asyncio.sleep(3)
+        else:
+            return 'The algorithm is not running!'
+
     async def listener(self):
         await self.client.wait_until_ready()
         while not self.client.is_closed():
             # make sure a valid user exists!
             if self.user and self.algopipe.has_data():
                 algomsg = self.algopipe.read()
-                await self.user.send(algomsg)
+                if '#' in algomsg:
+                    if algomsg == '#kill-success':
+                        print('confirmed kill')
+                        self.instance_kill = True
+                else:
+                    await self.user.send(algomsg)
             await asyncio.sleep(1)
     
     def run(self):
@@ -170,6 +186,21 @@ class DiscordBot:
         helpmenu += '\t\t-delete\n'
         helpmenu += '\t\t example: watchlist delete [watchlistname]'
         return helpmenu
+
+    # p2 is the pipe for the algo instance to talk through
+    def start_instance(self,pipe):
+        msg = ''
+        if self.instance is None:
+            msg = "Starting longshort!"
+            self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,pipe,self.logger,self.LSUniverse)
+            # self.instance = mp.Process(target=self.algo.run)
+            self.instance = threading.Thread(target = self.algo.run)
+            self.instance.start()
+            self.instance_kill = False
+            self.logger.info('Discord: Algorithm initiated')
+        else:
+            msg = "Longshort is already running!"
+        return msg
 
     def respondMention(self):
         return 'type --help in my dm for more info!\n'

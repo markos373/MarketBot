@@ -38,7 +38,7 @@ if __name__ == "__main__":
     #longshort = LongShort(key_id, secret_key)
     #tTrading = threading.Thread(target=longshort.run)
     #tTrading.start()
-    bot = DiscordBot(discordToken, alpha, alpaca)
+    bot = DiscordBot(discordToken, alpha, alpaca,logger)
     bot.run()
     
     logging.shutdown()
