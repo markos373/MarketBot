@@ -56,6 +56,8 @@ class DiscordBot:
         self.algo = None
         self.algopipe = p1
         
+        self.logger.info('Discord: Bot initiated')
+
         @self.client.event
         async def on_ready():
             print(f'{self.client.user} is a very bad bot')
@@ -80,6 +82,7 @@ class DiscordBot:
                 if message.author != self.user:
                     await message.author.send('you are not my boss!')
                     return
+                self.logger.info("Discord: User input = [{}]".format(message.content))
                 # messages in dm
                 # this is where we parse user messages
                 if 'help' in input:
@@ -140,6 +143,7 @@ class DiscordBot:
                 await message.channel.send(msg)
 
     async def kill_instance(self):
+        self.logger.info("Discord: Received user input for algo termination")
         if self.instance is not None:
             self.algopipe.send('kill')
             while True:
@@ -147,12 +151,15 @@ class DiscordBot:
                     self.instance.join()
                     print("REALLY REALLY KILLED IT!!!")
                     self.instance = None
+                    self.logger.info('Discord: Algo successfully terminated')
                     return 'Algorithm successfully terminated!'
                 else:
                     # this is dirty but this guy has to wait for the listner to 
                     # confirm that the instance thread has wrapped up
+                    self.logger.info('Discord: waiting for algo to wrap up...')
                     await asyncio.sleep(3)
         else:
+            self.logger.error("Discord: Algo is not running")
             return 'The algorithm is not running!'
 
     async def listener(self):
@@ -164,6 +171,7 @@ class DiscordBot:
                 if '#' in algomsg:
                     if algomsg == '#kill-success':
                         print('confirmed kill')
+                        self.logger.info('Discord: Received kill success message from algo')
                         self.instance_kill = True
                 else:
                     await self.user.send(algomsg)
@@ -189,6 +197,7 @@ class DiscordBot:
 
     # p2 is the pipe for the algo instance to talk through
     def start_instance(self,pipe):
+        self.logger.info('Discord: Received user input for algo start')
         msg = ''
         if self.instance is None:
             msg = "Starting longshort!"
@@ -200,6 +209,7 @@ class DiscordBot:
             self.logger.info('Discord: Algorithm initiated')
         else:
             msg = "Longshort is already running!"
+            self.logger.error('Discord: Algorithm is already running, skipping execution')
         return msg
 
     def respondMention(self):

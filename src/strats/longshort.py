@@ -34,19 +34,20 @@ class LongShort:
 
     # this variable stops all the loops
     self.stop = False
-  
-    #===================Piping====================
     self.pipe = pipe 
 
-    #=============================================
+    self.logger.info("Algo: Algorithm initiated")
+
   def killcheck(self):
     if self.stop:
         print('killing listener first')
         self.listener.join()
+        self.logger.info("Algo: listener successfully terminated")
     return
 
   def kill(self):
     self.talk("wrapping up...")
+    self.logger.info("Algo: Setting stop to true..")
     self.stop = True
 
   def run(self):
@@ -103,6 +104,7 @@ class LongShort:
     
       self.killcheck()
     print("about to send kill success msg to discord")
+    self.logger.info('Algo: successfully killed all threads')
     self.talk("#kill-success")
 
   # Wait for market to open.
@@ -113,9 +115,8 @@ class LongShort:
       openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
       currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
       timeToOpen = int((openingTime - currTime) / 60)
-      self.talk(str(timeToOpen) + " minutes til market open.")
-      self.talk(('stop signal is:',self.stop))
-      time.sleep(5)
+      self.talk(str(timeToOpen) + " minutes til market open.")      
+      time.sleep(60)
       isOpen = self.alpaca.get_clock().is_open
       
       self.killcheck()
@@ -359,6 +360,7 @@ class LongShort:
               msg = self.pipe.read()
               if msg == 'kill':
                 print('kill signal received from discord')
+                self.logger.info('Algo: kill signal received from discord')
                 self.kill()
                 return
               else:
