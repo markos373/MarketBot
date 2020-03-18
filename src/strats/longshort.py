@@ -294,8 +294,11 @@ class LongShort:
     tGetTPShort.start()
     tGetTPShort.join()
 
-    self.qLong = int(self.longAmount // respGetTPLong[0])
-    self.qShort = int(self.shortAmount // respGetTPShort[0])
+    # need to make sure that division by zero does not happen here
+    resp_long = respGetTPLong[0]
+    resp_short = respGetTPShort[0]
+    self.qLong = int(self.longAmount // (resp_long if resp_long > 0 else 1))
+    self.qShort = int(self.shortAmount // (resp_short if resp_short > 0 else 1))
 
   # Get the total price of the array of input stocks.
   def getTotalPrice(self, stocks, resp):
