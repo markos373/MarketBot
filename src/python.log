@@ -1,10 +1,10 @@
-[2020-03-24 17:10:43,080] WARNING: PyNaCl is not installed, voice will NOT be supported
-[2020-03-24 17:10:43,114] INFO: Discord: Bot initiated
-[2020-03-24 17:10:43,115] INFO: logging in using static token
-[2020-03-24 17:10:43,437] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
-[2020-03-24 17:10:43,439] INFO: Shard ID None has sent the IDENTIFY payload.
-[2020-03-24 17:10:43,537] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-ff75",{"micros":65580,"calls":["discord-sessions-prd-1-56",{"micros":58631,"calls":["start_session",{"micros":53423,"calls":["api-prd-main-dqc0",{"micros":50671,"calls":["get_user",{"micros":3495},"add_authorized_ip",{"micros":4180},"get_guilds",{"micros":1859},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":14,"calls":[]},"presence_connect",{"micros":3445,"calls":[]}]}]}] (Session ID: 3a934ba43fa5bf534c99bfd4b997571e).
-[2020-03-24 17:10:43,641] INFO: Discord: User input = [positions]
-[2020-03-24 17:15:41,880] INFO: Cleaning up tasks.
-[2020-03-24 17:15:41,880] INFO: Cleaning up after 5 tasks.
-[2020-03-24 17:15:41,992] INFO: Closing the event loop.
+[2020-03-24 17:19:53,649] WARNING: PyNaCl is not installed, voice will NOT be supported
+[2020-03-24 17:19:53,687] INFO: Discord: Bot initiated
+[2020-03-24 17:19:53,688] INFO: logging in using static token
+[2020-03-24 17:19:54,098] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
+[2020-03-24 17:19:54,101] INFO: Shard ID None has sent the IDENTIFY payload.
+[2020-03-24 17:19:54,195] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-rxf1",{"micros":63652,"calls":["discord-sessions-prd-1-60",{"micros":59592,"calls":["start_session",{"micros":54143,"calls":["api-prd-main-dlxn",{"micros":50363,"calls":["get_user",{"micros":3237},"add_authorized_ip",{"micros":1930},"get_guilds",{"micros":4306},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: e2bba36fd82d6dd664d9e955748cc8df).
+[2020-03-24 17:19:58,115] INFO: Discord: User input = [positions]
+[2020-03-24 17:20:46,649] INFO: Cleaning up tasks.
+[2020-03-24 17:20:46,649] INFO: Cleaning up after 5 tasks.
+[2020-03-24 17:20:46,779] INFO: Closing the event loop.

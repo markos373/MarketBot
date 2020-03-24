@@ -152,7 +152,7 @@ class DiscordBot:
                     table = PrettyTable(headers)
                     for position in positions:
                         table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
-                    msg = table
+                    msg = '```'+table.get_string()+'```'
                     print(table)
                 else:
                     msg = 'how can I help? (type \'help\' to see options)'
