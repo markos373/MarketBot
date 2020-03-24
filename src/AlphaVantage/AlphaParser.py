@@ -16,17 +16,27 @@ class AlphaParser:
     # Just a sample from the api documentation. 
     # To use other functions, check https://www.alphavantage.co/documentation/
     
+    #Temp Print
+    def tprint(self, myDict):
+        for i in myDict.keys():
+            print("-----------------------------------------------------------------------------------")
+            print(i)
+            for dates, num in myDict[i].items():
+                functionType = list(num.keys())
+                num2 = list(num.values())
+                print(dates + ": " + num2[0] + " | " + functionType[0])
+
     #Parse Data Set
-    #returns data under "Technical Analysis: [data_type]"
+    #returns data under "Technical Analysis: [functionType]"
     def parseData(self, dataSet):
         analysis = list(dataSet.keys())[1]
         myDict = dataSet[analysis]
-
         return myDict
-        # key_list = list(myDict.keys()) 
-        # val_list = list(myDict.values())
-        # print(key_list[0])
-        # print(val_list[0])
+
+    ### MAIN TESTING ###
+    # alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly", "10", "open")
+    # alpha.addSymbol("TSLA")
+    # dataset = alpha.getSMAvalue()
 
     # Returns the simple moving average (SMA) values
     def getSMAvalue(self):
@@ -43,31 +53,42 @@ class AlphaParser:
             r = requests.get(api_url, parameters)
             data = self.parseData(r.json())
             finalDict[s] = data
+        self.tprint(finalDict)
         return finalDict
 
     # Returns the exponential moving area (EMA) values
     def getEMAvalue(self):
-        parameters = {
-            'function' : 'EMA',
-            'symbol' : self.symbols,
-            'interval' : self.interval,
-            'time_period' : self.time_period,
-            'series_type' : self.series_type,
-            'apikey' : self.key
-        }
-        r = requests.get(api_url, parameters)
-        return r.json()
+        finalDict = {}
+        for s in self.symbols:
+            parameters = {
+                'function' : 'EMA',
+                'symbol' : self.symbols,
+                'interval' : self.interval,
+                'time_period' : self.time_period,
+                'series_type' : self.series_type,
+                'apikey' : self.key
+            }
+            r = requests.get(api_url, parameters)
+            data = self.parseData(r.json())
+            finalDict[s] = data
+        self.tprint(finalDict)
+        return finalDict
 
     # Returns the volume weighted average price (VWAP) for intraday time series
     def getVWAPvalue(self):
-        parameters = {
-            'function' : 'VWAP',
-            'symbol' : self.symbols,
-            'interval' : self.interval,
-            'apikey' : self.key
-        }
-        r = requests.get(api_url, parameters)
-        return r.json()
+        finalDict = {}
+        for s in self.symbols:
+            parameters = {
+                'function' : 'VWAP',
+                'symbol' : self.symbols,
+                'interval' : self.interval,
+                'apikey' : self.key
+            }
+            r = requests.get(api_url, parameters)
+            data = self.parseData(r.json())
+            finalDict[s] = data
+        self.tprint(finalDict)
+        return finalDict
 
     # Returns the moving average convergence / divergence (MACD) values
     def getMACDvalue(self):
