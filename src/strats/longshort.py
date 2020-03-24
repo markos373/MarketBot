@@ -10,7 +10,7 @@ APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 
 
 class LongShort:
-  def __init__(self, _API_KEY, _API_SECRET, pipe, stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM']):
+  def __init__(self, _API_KEY, _API_SECRET, pipe, logger, stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM']):
     API_KEY = _API_KEY
     API_SECRET = _API_SECRET
     self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
@@ -30,17 +30,25 @@ class LongShort:
     self.shortAmount = 0
     self.timeToClose = None
     self.listener = threading.Thread(target= self.waiter_thread)
-    self.threadQueue = mp.Queue()
+    self.logger = logger
 
-    #===================Piping====================
+    # this variable stops all the loops
+    self.stop = False
     self.pipe = pipe 
 
-    #=============================================
+    self.logger.info("Algo: Algorithm initiated")
+
+  def killcheck(self):
+    if self.stop:
+        print('killing listener first')
+        self.listener.join()
+        self.logger.info("Algo: listener successfully terminated")
+    return
 
   def kill(self):
-    while True:
-      job = self.threadQueue.get()
-      #job.terminate()
+    self.talk("wrapping up...")
+    self.logger.info("Algo: Setting stop to true..")
+    self.stop = True
 
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
@@ -53,14 +61,15 @@ class LongShort:
     # Wait for market to open.
     self.talk("Waiting for market to open...")
     tAMO = threading.Thread(target=self.awaitMarketOpen)
-    self.threadQueue.put(tAMO)
     tAMO.start()
     tAMO.join()
-    self.talk("Market opened.")
+    
+    # the waiting thread may be killed while the market is open, so check flag
+    if not self.stop:
+      self.talk("Market opened.")
 
     # Rebalance the portfolio every minute, making necessary trades.
-    while True:
-
+    while not self.stop:
       # Figure out when the market will close so we can prepare to sell beforehand.
       clock = self.alpaca.get_clock()
       closingTime = clock.next_close.replace(tzinfo=datetime.timezone.utc).timestamp()
@@ -92,18 +101,25 @@ class LongShort:
         tRebalance.start()
         tRebalance.join()
         time.sleep(60)
+    
+      self.killcheck()
+    print("about to send kill success msg to discord")
+    self.logger.info('Algo: successfully killed all threads')
+    self.talk("#kill-success")
 
   # Wait for market to open.
   def awaitMarketOpen(self):
     isOpen = self.alpaca.get_clock().is_open
-    while(not isOpen):
+    while not isOpen and not self.stop:
       clock = self.alpaca.get_clock()
       openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
       currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
       timeToOpen = int((openingTime - currTime) / 60)
-      self.talk(str(timeToOpen) + " minutes til market open.")
+      self.talk(str(timeToOpen) + " minutes til market open.")      
       time.sleep(60)
       isOpen = self.alpaca.get_clock().is_open
+      
+      self.killcheck()
 
   def rebalance(self):
     tRerank = threading.Thread(target=self.rerank)
@@ -278,8 +294,11 @@ class LongShort:
     tGetTPShort.start()
     tGetTPShort.join()
 
-    self.qLong = int(self.longAmount // respGetTPLong[0])
-    self.qShort = int(self.shortAmount // respGetTPShort[0])
+    # need to make sure that division by zero does not happen here
+    resp_long = respGetTPLong[0]
+    resp_short = respGetTPShort[0]
+    self.qLong = int(self.longAmount // (resp_long if resp_long > 0 else 1))
+    self.qShort = int(self.shortAmount // (resp_short if resp_short > 0 else 1))
 
   # Get the total price of the array of input stocks.
   def getTotalPrice(self, stocks, resp):
@@ -342,8 +361,14 @@ class LongShort:
       while True:
           if self.pipe.has_data():
               msg = self.pipe.read()
-              print("discord said something!")
-              self.pipe.send("hey discord this me")
+              if msg == 'kill':
+                print('kill signal received from discord')
+                self.logger.info('Algo: kill signal received from discord')
+                self.kill()
+                return
+              else:
+                print("discord said something!")
+                self.talk("hey discord this me")
 
   def talk(self,msg):
     self.pipe.send(msg)
