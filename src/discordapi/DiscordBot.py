@@ -105,10 +105,24 @@ class DiscordBot:
                     elif 'delete' in input:
                         dname = ' '.join(input[input.index('delete')+1:])
                         msg = self.deleteWatchlist(dname)
+                #add 1 symbol to watchlist
                 elif 'add' in input:
-                    i = input.index('add')
-                    if not input[i+1]:
-                        msg = 'please specify an input!'
+                    watchlistid = input[input.index('add')+1]
+                    print("watchlist: " + watchlistid)
+                    symbol = ' '.join(input[input.index(watchlistid)+1:])
+                    print("symbol: " + symbol)
+                    msg = self.addSymbol(watchlistid, symbol)
+                elif 'remove' in input:
+                    watchlistid = input[input.index('remove')+1]
+                    print("watchlist: " + watchlistid)
+                    symbol = ' '.join(input[input.index(watchlistid)+1:])
+                    print("symbol: " + symbol)
+                    msg = self.removeSymbol(watchlistid, symbol)
+
+                    ### is this needed?
+                    #i = input.index('add')
+                    #if not input[i+1]:
+                    #    msg = 'please specify an input!'
                 elif '!longshort' in input:
                     if '-add' in input:
                         if ',' in input[input.index('-add')+1]:
@@ -255,3 +269,17 @@ class DiscordBot:
             returnstring += k + ': ' + str(v) + '\n'
 
         return returnstring
+
+    def addSymbol(self,name,ticker):
+        try: 
+            self.alpaca.addSymbol(name, ticker)
+        except:
+            print("addsymbol failed")
+        return "supposedly added symbol " + ticker + " to " + name
+
+    def removeSymbol(self,name,ticker):
+        try: 
+            self.alpaca.removeSymbol(name, ticker)
+        except:
+            print("removesymbol failed")
+        return "supposedly removed symbol " + ticker + " from " + name
