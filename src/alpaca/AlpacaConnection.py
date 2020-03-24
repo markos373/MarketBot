@@ -126,12 +126,21 @@ class AlpacaConnection:
         params = {"symbol": ticker}
         response = self.requestsFunc('post', endpoint, params)
         print(response.text, response.status_code, sep="\n")
-
+        if response.status_code == 422:
+            return "unable to add symbol " + ticker + " to " + name
+        else: 
+            return "successfully added symbol " + ticker + " to " + name
+ 
     def removeSymbol(self, name, ticker):
         id = self.watchlists[name]        
         endpoint = API_WATCHLIST_URL + "/" + id + "/" + ticker
         response = self.requestsFunc('delete', endpoint, {})
         print(response.text, response.status_code, sep="\n")
+        if response.status_code == 422:
+            return "unable to remove symbol " + ticker + " from " + name
+        else: 
+            return "successfully removed symbol " + ticker + " from " + name
+ 
     
     def deleteWatchlist(self,name):
         id = self.watchlists[name]
