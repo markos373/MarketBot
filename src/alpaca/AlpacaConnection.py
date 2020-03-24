@@ -7,7 +7,7 @@ import json
 API_WATCHLIST_URL = "https://paper-api.alpaca.markets/v2/watchlists"
 API_ORDERS_URL    = "https://paper-api.alpaca.markets/v2/orders"
 API_ACCOUNT_URL   = "https://paper-api.alpaca.markets/v2/account"
-APCA_API_BASE_URL = "https://paper-api.alpaca.markets/v2"
+APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 class AlpacaConnection:
 
     def __init__(self, logger, key_id, secret_key):

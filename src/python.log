@@ -1,8 +1,10 @@
-[2020-03-03 16:43:09,320] WARNING: PyNaCl is not installed, voice will NOT be supported
-[2020-03-03 16:43:09,324] INFO: logging in using static token
-[2020-03-03 16:43:09,598] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
-[2020-03-03 16:43:09,600] INFO: Shard ID None has sent the IDENTIFY payload.
-[2020-03-03 16:43:09,702] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-vkpb",{"micros":72242,"calls":["discord-sessions-prd-1-3",{"micros":70384,"calls":["start_session",{"micros":67023,"calls":["api-prd-main-tgd2",{"micros":61507,"calls":["get_user",{"micros":3585},"add_authorized_ip",{"micros":1976},"get_guilds",{"micros":22567},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: d18133262e2839e9ba5fae9f3c6248cc).
-[2020-03-03 16:48:10,352] INFO: Cleaning up tasks.
-[2020-03-03 16:48:10,353] INFO: Cleaning up after 5 tasks.
-[2020-03-03 16:48:10,523] INFO: Closing the event loop.
+[2020-03-24 17:10:43,080] WARNING: PyNaCl is not installed, voice will NOT be supported
+[2020-03-24 17:10:43,114] INFO: Discord: Bot initiated
+[2020-03-24 17:10:43,115] INFO: logging in using static token
+[2020-03-24 17:10:43,437] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
+[2020-03-24 17:10:43,439] INFO: Shard ID None has sent the IDENTIFY payload.
+[2020-03-24 17:10:43,537] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-ff75",{"micros":65580,"calls":["discord-sessions-prd-1-56",{"micros":58631,"calls":["start_session",{"micros":53423,"calls":["api-prd-main-dqc0",{"micros":50671,"calls":["get_user",{"micros":3495},"add_authorized_ip",{"micros":4180},"get_guilds",{"micros":1859},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":14,"calls":[]},"presence_connect",{"micros":3445,"calls":[]}]}]}] (Session ID: 3a934ba43fa5bf534c99bfd4b997571e).
+[2020-03-24 17:10:43,641] INFO: Discord: User input = [positions]
+[2020-03-24 17:15:41,880] INFO: Cleaning up tasks.
+[2020-03-24 17:15:41,880] INFO: Cleaning up after 5 tasks.
+[2020-03-24 17:15:41,992] INFO: Closing the event loop.
