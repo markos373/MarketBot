@@ -15,12 +15,13 @@ class AlpacaConnection:
         self.logger = logger
         self.account_data = ""
         self.header = { "APCA-API-KEY-ID":key_id, "APCA-API-SECRET-KEY":secret_key}
-        
+        self.key_id = key_id
+        self.secret_key = secret_key
         # stored by 'name' : 'id'
         self.watchlists = {}
 
         # initiating functions to grab values for use
-        self.getAccountInformation()
+        print(self.getAccountInformation())
         self.getWatchlists()
 
     #Takes type, url, params
@@ -70,6 +71,13 @@ class AlpacaConnection:
     def getAccountInformation(self):
         r = self.requestsFunc('get', API_ACCOUNT_URL, {})
         self.account_data = r.json()
+        ###should not need
+        #try:
+        #    r = requests.get(url = API_ACCOUNT_URL,headers = self.header)
+        #    self.account_data = r.json()
+        #except Exception as e:
+        #    return "Failed to establish connection. Error: {}".format(e)
+
         return self.account_data
 
     def getClock(self):
