@@ -36,6 +36,8 @@ class LongShort:
     self.stop = False
     self.pipe = pipe 
 
+    self.m_queue = message_queue(self.pipe)
+
     self.logger.info("Algo: Algorithm initiated")
 
   def killcheck(self):
@@ -59,14 +61,14 @@ class LongShort:
       self.alpaca.cancel_order(order.id)
 
     # Wait for market to open.
-    self.talk("Waiting for market to open...")
+    self.m_queue.add_msg("Waiting for market to open...")
     tAMO = threading.Thread(target=self.awaitMarketOpen)
     tAMO.start()
     tAMO.join()
     
     # the waiting thread may be killed while the market is open, so check flag
     if not self.stop:
-      self.talk("Market opened.")
+      self.m_queue.add_msg("Market opened.")
 
     # Rebalance the portfolio every minute, making necessary trades.
     while not self.stop:
@@ -78,7 +80,7 @@ class LongShort:
 
       if(self.timeToClose < (60 * 15)):
         # Close all positions when 15 minutes til market close.
-        self.talk("Market closing soon.  Closing positions.")
+        self.m_queue.add_msg("Market closing soon.  Closing positions.")
 
         positions = self.alpaca.list_positions()
         for position in positions:
@@ -93,7 +95,7 @@ class LongShort:
           tSubmitOrder.join()
 
         # Run script again after market close for next trading day.
-        self.talk("Sleeping until market close (15 minutes).")
+        self.m_queue.add_msg("Sleeping until market close (15 minutes).")
         time.sleep(60 * 15)
       else:
         # Rebalance the portfolio.
@@ -115,8 +117,9 @@ class LongShort:
       openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
       currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
       timeToOpen = int((openingTime - currTime) / 60)
-      self.talk(str(timeToOpen) + " minutes til market open.")      
-      time.sleep(60)
+      self.m_queue.add_msg(str(timeToOpen) + " minutes til market open.")      
+      time.sleep(60 * 5)
+      # five minutes
       isOpen = self.alpaca.get_clock().is_open
       
       self.killcheck()
@@ -131,8 +134,8 @@ class LongShort:
     for order in orders:
       self.alpaca.cancel_order(order.id)
 
-    self.talk("We are taking a long position in: " + str(self.long))
-    self.talk("We are taking a short position in: " + str(self.short))
+    self.m_queue.add_msg("We are taking a long position in: " + str(self.long))
+    self.m_queue.add_msg("We are taking a short position in: " + str(self.short))
     # Remove positions that are no longer in the short or long list, and make a list of positions that do not need to change.  Adjust position quantities if needed.
     executed = [[], []]
     positions = self.alpaca.list_positions()
@@ -331,13 +334,13 @@ class LongShort:
     if(qty > 0):
       try:
         self.alpaca.submit_order(stock, qty, side, "market", "day")
-        self.talk("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
+        self.m_queue.add_msg("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
         resp.append(True)
       except:
-        self.talk("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
+        self.m_queue.add_msg("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
         resp.append(False)
     else:
-      self.talk("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
+      self.m_queue.add_msg("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
       resp.append(True)
 
   # Get percent changes of the stock prices over the past 10 minutes.
@@ -368,7 +371,21 @@ class LongShort:
                 return
               else:
                 print("discord said something!")
-                self.talk("hey discord this me")
+                self.m_queue.add_msg("hey discord this me")
 
   def talk(self,msg):
     self.pipe.send(msg)
+
+class message_queue:
+  def __init__(self, pipe):
+    self.message = ''
+    self.msg_count = 0
+    self.pipe = pipe
+
+  def add_msg(self, msg):
+    self.message += msg + '\n'
+    self.msg_count += 1
+    if self.msg_count == 10:
+      self.pipe.send(self.message)
+      self.message = ''
+      self.msg_count = 0
