@@ -23,6 +23,39 @@ class AlpacaConnection:
         self.getAccountInformation()
         self.getWatchlists()
 
+    #Takes type, url, params
+    def requestsFunc(self, type, endpoint, params):
+        if type == 'get':
+            print("get")
+            try: 
+                func = requests.get(url = endpoint, headers = self.header) 
+            except Exception as e:
+                logging.error("ERROR: REQUEST.GET FAILED")
+                print(e.args)
+            return func
+
+        elif type == 'post':
+            print("post")
+            data = json.dumps(params)
+            try:
+                func = requests.post(url = endpoint, data = data, headers = self.header)
+            except Exception as e:
+                logging.error("ERROR: REQUEST.POST FAILED")
+                print(e.args)
+            return func
+
+        elif type == 'delete':
+            print("delete")
+            try:
+                func = requests.delete(url = endpoint, headers = self.header)
+            except Exception as e:
+                logging.error("ERROR: REQUEST.DELETE FAILED")
+                print(e.args)
+            return func        
+        else:
+            logging.fatal("ERROR: BAD ARGUMENTS")
+            print("requestFunc failed")
+        
     def submitOrder(self, ticker, qty, side,ordertype,tz):
         params = {
             "symbol":ticker,
@@ -35,7 +68,7 @@ class AlpacaConnection:
         print(r)
 
     def getAccountInformation(self):
-        r = requests.get(url = API_ACCOUNT_URL,headers = self.header)
+        r = self.requestsFunc('get', API_ACCOUNT_URL, {})
         self.account_data = r.json()
         return self.account_data
 
@@ -51,13 +84,9 @@ class AlpacaConnection:
     def cancelAllOrders(self):
         self.api.cancel_all_orders()
 
-    def addToWatchlist(self, tickers):
-        pass
-
-    def createWatchlist(self, wname, tickers):
-        params = { "name":wname, "symbols":tickers }
-        data = json.dumps(params)
-        r = requests.post(url=API_WATCHLIST_URL, data=data, headers=self.header)
+    def createWatchlist(self, wname):
+        params = { "name":wname, "symbols":[]}
+        r = self.requestsFunc('post', API_WATCHLIST_URL, params)
         d = r.json()
         id = d['id']
         name = d['name']
@@ -67,7 +96,7 @@ class AlpacaConnection:
     # this function does not return anything. It should only be used inside the AlpacaConnection class.
     # we do not want to call this everytime to get watchlists because we have limited requests
     def getWatchlists(self):
-        r = requests.get(url=API_WATCHLIST_URL, headers=self.header)
+        r = self.requestsFunc('get', API_WATCHLIST_URL, {})
         d = r.json()
         for watchlist in d:
             id = watchlist['id']
@@ -80,20 +109,28 @@ class AlpacaConnection:
     def viewWatchlist(self,name):
         id = self.watchlists[name]
         endpoint = API_WATCHLIST_URL+'/' + id
-        r = requests.get(url=endpoint,headers=self.header)
+        r = self.requestsFunc('get', endpoint, {})
         return r.json()
 
-    def removeSymbol(self, ticker,name):
+    def addSymbol(self, name, ticker):
+        id = self.watchlists[name]
+        endpoint = API_WATCHLIST_URL + '/' + id
+        params = {"symbol": ticker}
+        response = self.requestsFunc('post', endpoint, params)
+        print(response.text, response.status_code, sep="\n")
+
+    def removeSymbol(self, name, ticker):
         id = self.watchlists[name]        
-        endpoint = API_WATCHLIST_URL + "/" + name + "/" + ticker
-        response = requests.delete(url=endpoint, headers=self.header)
+        endpoint = API_WATCHLIST_URL + "/" + id + "/" + ticker
+        response = self.requestsFunc('delete', endpoint, {})
         print(response.text, response.status_code, sep="\n")
     
     def deleteWatchlist(self,name):
         id = self.watchlists[name]
         endpoint = API_WATCHLIST_URL + '/' + id
-        requests.delete(url= endpoint,headers = self.header)
-        self.getWatchlists()
+        self.requestsFunc('delete', endpoint, {})
+        if name in self.watchlists.keys():
+            del self.watchlists[name]
 
     def buildErrorMessage(self, error):
         return str(error) + str(error.status_code)   

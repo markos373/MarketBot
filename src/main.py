@@ -32,6 +32,8 @@ if __name__ == "__main__":
 
     alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")    
 
+    #threading.Thread(target = '')
+    #t.start
     bot = DiscordBot(discordToken, alpha, alpaca)
     longshort = LongShort(key_id, secret_key)
     longshort.run()
