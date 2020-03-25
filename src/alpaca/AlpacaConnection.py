@@ -21,13 +21,12 @@ class AlpacaConnection:
         self.watchlists = {}
 
         # initiating functions to grab values for use
-        print(self.getAccountInformation())
         self.getWatchlists()
 
     #Takes type, url, params
     def requestsFunc(self, type, endpoint, params):
         if type == 'get':
-            print("get")
+            logging.info('Alpaca: making get request to '+endpoint)
             try: 
                 func = requests.get(url = endpoint, headers = self.header) 
             except Exception as e:
@@ -36,7 +35,7 @@ class AlpacaConnection:
             return func
 
         elif type == 'post':
-            print("post")
+            logging.info('Alpaca: making post request to '+endpoint)
             data = json.dumps(params)
             try:
                 func = requests.post(url = endpoint, data = data, headers = self.header)
@@ -46,7 +45,7 @@ class AlpacaConnection:
             return func
 
         elif type == 'delete':
-            print("delete")
+            logging.info('Alpaca: making delete request to '+endpoint)
             try:
                 func = requests.delete(url = endpoint, headers = self.header)
             except Exception as e:

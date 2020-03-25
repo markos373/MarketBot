@@ -52,6 +52,18 @@ class LongShort:
     self.logger.info("Algo: Setting stop to true..")
     self.stop = True
 
+  def algosleep(self, t):
+    # im gonna replace all the time sleep calls with this so that 
+    # the thread doesnt sleep when the user wants it to die
+    counter = 0
+    while not self.stop and counter < t:
+      time.sleep(1)
+      counter += 1
+    
+    self.logger.info('Algo: This guy tried to sleep but he ain\'t slick')
+
+    return
+
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
     self.listener.start()
@@ -72,6 +84,7 @@ class LongShort:
 
     # Rebalance the portfolio every minute, making necessary trades.
     while not self.stop:
+      self.logger.info('beginning of 1 iteration of the whileloop')
       # Figure out when the market will close so we can prepare to sell beforehand.
       clock = self.alpaca.get_clock()
       closingTime = clock.next_close.replace(tzinfo=datetime.timezone.utc).timestamp()
@@ -80,7 +93,7 @@ class LongShort:
 
       if(self.timeToClose < (60 * 15)):
         # Close all positions when 15 minutes til market close.
-        self.m_queue.add_msg("Market closing soon.  Closing positions.")
+        self.talk("Market closing soon.  Closing positions.")
 
         positions = self.alpaca.list_positions()
         for position in positions:
@@ -95,15 +108,16 @@ class LongShort:
           tSubmitOrder.join()
 
         # Run script again after market close for next trading day.
-        self.m_queue.add_msg("Sleeping until market close (15 minutes).")
-        time.sleep(60 * 15)
+        self.talk("Sleeping until market close (15 minutes).")
+        self.algosleep(60 * 15)
       else:
         # Rebalance the portfolio.
+        print('rebalance???')
         tRebalance = threading.Thread(target=self.rebalance)
         tRebalance.start()
         tRebalance.join()
-        time.sleep(60)
-    
+        self.algosleep(60)
+      self.logger.info('end of 1 iteration of the whileloop')
       self.killcheck()
     print("about to send kill success msg to discord")
     self.logger.info('Algo: successfully killed all threads')
@@ -118,7 +132,7 @@ class LongShort:
       currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
       timeToOpen = int((openingTime - currTime) / 60)
       self.m_queue.add_msg(str(timeToOpen) + " minutes til market open.")      
-      time.sleep(60 * 5)
+      self.algosleep(60 * 5)
       # five minutes
       isOpen = self.alpaca.get_clock().is_open
       
