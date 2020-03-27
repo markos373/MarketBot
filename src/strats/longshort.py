@@ -36,6 +36,8 @@ class LongShort:
     self.stop = False
     self.pipe = pipe 
 
+    self.m_queue = message_queue(self.pipe)
+
     self.logger.info("Algo: Algorithm initiated")
 
   def killcheck(self):
@@ -50,6 +52,18 @@ class LongShort:
     self.logger.info("Algo: Setting stop to true..")
     self.stop = True
 
+  def algosleep(self, t):
+    # im gonna replace all the time sleep calls with this so that 
+    # the thread doesnt sleep when the user wants it to die
+    counter = 0
+    while not self.stop and counter < t:
+      time.sleep(1)
+      counter += 1
+    
+    self.logger.info('Algo: This guy tried to sleep but he ain\'t slick')
+
+    return
+
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
     self.listener.start()
@@ -59,17 +73,18 @@ class LongShort:
       self.alpaca.cancel_order(order.id)
 
     # Wait for market to open.
-    self.talk("Waiting for market to open...")
+    self.m_queue.add_msg("Waiting for market to open...")
     tAMO = threading.Thread(target=self.awaitMarketOpen)
     tAMO.start()
     tAMO.join()
     
     # the waiting thread may be killed while the market is open, so check flag
     if not self.stop:
-      self.talk("Market opened.")
+      self.m_queue.add_msg("Market opened.")
 
     # Rebalance the portfolio every minute, making necessary trades.
     while not self.stop:
+      self.logger.info('beginning of 1 iteration of the whileloop')
       # Figure out when the market will close so we can prepare to sell beforehand.
       clock = self.alpaca.get_clock()
       closingTime = clock.next_close.replace(tzinfo=datetime.timezone.utc).timestamp()
@@ -94,14 +109,15 @@ class LongShort:
 
         # Run script again after market close for next trading day.
         self.talk("Sleeping until market close (15 minutes).")
-        time.sleep(60 * 15)
+        self.algosleep(60 * 15)
       else:
         # Rebalance the portfolio.
+        print('rebalance???')
         tRebalance = threading.Thread(target=self.rebalance)
         tRebalance.start()
         tRebalance.join()
-        time.sleep(60)
-    
+        self.algosleep(60)
+      self.logger.info('end of 1 iteration of the whileloop')
       self.killcheck()
     print("about to send kill success msg to discord")
     self.logger.info('Algo: successfully killed all threads')
@@ -115,8 +131,9 @@ class LongShort:
       openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
       currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
       timeToOpen = int((openingTime - currTime) / 60)
-      self.talk(str(timeToOpen) + " minutes til market open.")      
-      time.sleep(60)
+      self.m_queue.add_msg(str(timeToOpen) + " minutes til market open.")      
+      self.algosleep(60 * 5)
+      # five minutes
       isOpen = self.alpaca.get_clock().is_open
       
       self.killcheck()
@@ -131,8 +148,8 @@ class LongShort:
     for order in orders:
       self.alpaca.cancel_order(order.id)
 
-    self.talk("We are taking a long position in: " + str(self.long))
-    self.talk("We are taking a short position in: " + str(self.short))
+    self.m_queue.add_msg("We are taking a long position in: " + str(self.long))
+    self.m_queue.add_msg("We are taking a short position in: " + str(self.short))
     # Remove positions that are no longer in the short or long list, and make a list of positions that do not need to change.  Adjust position quantities if needed.
     executed = [[], []]
     positions = self.alpaca.list_positions()
@@ -331,13 +348,13 @@ class LongShort:
     if(qty > 0):
       try:
         self.alpaca.submit_order(stock, qty, side, "market", "day")
-        self.talk("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
+        self.m_queue.add_msg("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
         resp.append(True)
       except:
-        self.talk("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
+        self.m_queue.add_msg("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
         resp.append(False)
     else:
-      self.talk("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
+      self.m_queue.add_msg("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
       resp.append(True)
 
   # Get percent changes of the stock prices over the past 10 minutes.
@@ -368,7 +385,21 @@ class LongShort:
                 return
               else:
                 print("discord said something!")
-                self.talk("hey discord this me")
+                self.m_queue.add_msg("hey discord this me")
 
   def talk(self,msg):
     self.pipe.send(msg)
+
+class message_queue:
+  def __init__(self, pipe):
+    self.message = ''
+    self.msg_count = 0
+    self.pipe = pipe
+
+  def add_msg(self, msg):
+    self.message += msg + '\n'
+    self.msg_count += 1
+    if self.msg_count == 10:
+      self.pipe.send(self.message)
+      self.message = ''
+      self.msg_count = 0

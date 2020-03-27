@@ -119,7 +119,6 @@ class DiscordBot:
                         symbol = ' '.join(input[input.index(watchlistid)+1:])
                         print("symbol: " + symbol)
                         msg = self.removeSymbol(watchlistid, symbol)
-
                 ### I dont think this is needed but I'm leaving it here just in case - Solomon 
                         #i = input.index('add')
                         #if not input[i+1]:
