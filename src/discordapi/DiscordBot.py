@@ -1,6 +1,7 @@
 import discord
 from strats.longshort import LongShort
 from AlphaVantage.AlphaParser import AlphaParser
+from prettytable import PrettyTable
 import threading
 import asyncio
 import multiprocessing as mp
@@ -118,39 +119,54 @@ class DiscordBot:
                         symbol = ' '.join(input[input.index(watchlistid)+1:])
                         print("symbol: " + symbol)
                         msg = self.removeSymbol(watchlistid, symbol)
-
-                        ### is this needed?
+                ### I dont think this is needed but I'm leaving it here just in case - Solomon 
                         #i = input.index('add')
                         #if not input[i+1]:
-                        #    msg = 'please specify an input!'
-                elif '!longshort' in input:
-                    if '-add' in input:
-                        if ',' in input[input.index('-add')+1]:
-                            addlist = set(input[input.index('-add')+1].split(","))
+                            #msg = 'please specify an input!'
+                elif 'longshort' in input:
+                    if 'add' in input:
+                        msg = 'adding {}'
+                        if ',' in input[input.index('add')+1]:
+                            addlist = set(input[input.index('add')+1].split(","))
+                            msg = msg.format(list(addlist))
+                            self.LSUniverse.update(addlist)
                         else:
-                            addlist = set(input[input.index('-add')+1])
-                        msg = 'adding {}'.format(list(addlist))
-                        self.LSUniverse.update(addlist)
-                    elif '-remove' in input:
-                        if ',' in input[input.index('-remove')+1]:
-                            rmlist = set(input[input.index('-remove')+1].split(","))
+                            addlist = str(input[input.index('add')+1])
+                            msg = msg.format(addlist)
+                            self.LSUniverse.add(addlist)
+                        
+                    elif 'remove' in input:
+                        msg = 'removing {}'
+                        if ',' in input[input.index('remove')+1]:
+                            rmlist = set(input[input.index('remove')+1].split(","))
+                            msg = msg.format(list(rmlist))
+                            for thing in rmlist:
+                                self.LSUniverse.discard(thing)
                         else:
-                            rmlist = set(input[input.index('-remove')+1])
-                        msg = 'removing {}'.format(list(rmlist))
-                        for thing in rmlist:
-                            self.LSUniverse.discard(thing)
-                    elif '-run' in input:
+                            rmlist = str(input[input.index('remove')+1])
+                            msg = msg.format(rmlist)
+                            self.LSUniverse.remove(rmlist)
+                        
+                    elif 'run' in input:
                         msg = self.start_instance(p2)
-                    elif '-kill' in input:
+                    elif 'kill' in input:
                         msg = await self.kill_instance()
-                    elif '-view' in input:
+                    elif 'view' in input:
                         msg = "Stock Universe: {}".format(list(self.LSUniverse))
                     else:
-                        msg = """!longshort -[add/remove] TICKER,TICKER\n
-                               ex: !longshort -add AAPL,MMM"""
+                        msg = """longshort [add/remove] TICKER,TICKER\n
+                               ex: longshort add AAPL,MMM"""
                 elif 'algo' in input:
                     print("user said algo!")
                     self.algopipe.send("hey there algo")
+                elif 'positions' in input:
+                    positions = self.alpaca.listPositions()
+                    headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
+                    table = PrettyTable(headers)
+                    for position in positions:
+                        table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
+                    msg = '```'+table.get_string()+'```'
+                    print(table)
                 else:
                     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
@@ -205,8 +221,12 @@ class DiscordBot:
         helpmenu += '\t\t\t returns the name of all watchlists\n'
         helpmenu += '\t\t\t [watchlist name]\n'
         helpmenu += '\t\t\t returns specified watchlist\n'
+        helpmenu += '\t\t-add\n'
+        helpmenu += '\t\t\t example: watchlist add [watchlistname] [symbol]\n'   
+        helpmenu += '\t\t-remove\n'
+        helpmenu += '\t\t\t example: watchlist remove [watchlistname] [symbol]\n'        
         helpmenu += '\t\t-delete\n'
-        helpmenu += '\t\t example: watchlist delete [watchlistname]'
+        helpmenu += '\t\t\t example: watchlist delete [watchlistname]'
         return helpmenu
 
     # p2 is the pipe for the algo instance to talk through
@@ -272,14 +292,12 @@ class DiscordBot:
 
     def addSymbol(self,name,ticker):
         try: 
-            self.alpaca.addSymbol(name, ticker)
+            return self.alpaca.addSymbol(name, ticker)
         except:
-            print("addsymbol failed")
-        return "supposedly added symbol " + ticker + " to " + name
+            return "addSymbol failed (D)"
 
     def removeSymbol(self,name,ticker):
         try: 
-            self.alpaca.removeSymbol(name, ticker)
+            return self.alpaca.removeSymbol(name, ticker)
         except:
-            print("removesymbol failed")
-        return "supposedly removed symbol " + ticker + " from " + name
+            return "removeSymbol failed (D)"

@@ -1,8 +1,14 @@
-[2020-03-03 16:43:09,320] WARNING: PyNaCl is not installed, voice will NOT be supported
-[2020-03-03 16:43:09,324] INFO: logging in using static token
-[2020-03-03 16:43:09,598] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
-[2020-03-03 16:43:09,600] INFO: Shard ID None has sent the IDENTIFY payload.
-[2020-03-03 16:43:09,702] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-vkpb",{"micros":72242,"calls":["discord-sessions-prd-1-3",{"micros":70384,"calls":["start_session",{"micros":67023,"calls":["api-prd-main-tgd2",{"micros":61507,"calls":["get_user",{"micros":3585},"add_authorized_ip",{"micros":1976},"get_guilds",{"micros":22567},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: d18133262e2839e9ba5fae9f3c6248cc).
-[2020-03-03 16:48:10,352] INFO: Cleaning up tasks.
-[2020-03-03 16:48:10,353] INFO: Cleaning up after 5 tasks.
-[2020-03-03 16:48:10,523] INFO: Closing the event loop.
+[2020-03-24 17:26:56,735] WARNING: PyNaCl is not installed, voice will NOT be supported
+[2020-03-24 17:26:56,761] INFO: Discord: Bot initiated
+[2020-03-24 17:26:56,762] INFO: logging in using static token
+[2020-03-24 17:26:57,306] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
+[2020-03-24 17:26:57,312] INFO: Shard ID None has sent the IDENTIFY payload.
+[2020-03-24 17:26:57,460] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-1xmc",{"micros":107330,"calls":["discord-sessions-prd-1-68",{"micros":102836,"calls":["start_session",{"micros":99210,"calls":["api-prd-main-p80f",{"micros":94724,"calls":["get_user",{"micros":3699},"add_authorized_ip",{"micros":8080},"get_guilds",{"micros":9937},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: 8b99affcd4add53aa335ab0270091ef5).
+[2020-03-24 17:26:57,489] INFO: Discord: User input = [longshortte]
+[2020-03-24 17:26:57,654] INFO: Discord: User input = [longshortte]
+[2020-03-24 17:27:06,155] INFO: Discord: User input = [longshort]
+[2020-03-24 17:27:06,263] INFO: Discord: User input = [positions]
+[2020-03-24 17:27:15,509] INFO: Discord: User input = [longshort]
+[2020-03-24 17:27:18,449] INFO: Cleaning up tasks.
+[2020-03-24 17:27:18,449] INFO: Cleaning up after 5 tasks.
+[2020-03-24 17:27:18,559] INFO: Closing the event loop.
