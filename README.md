@@ -14,3 +14,20 @@ Initialize your configuration with the following in MarketBot/settings.json
 }
 
 ```
+Current usage requires Python 3.7.  This bot is remote controlled via Discord, allowing for commands such as:
+```
+longshort [add/remove] TICKER
+    Adds / removes a ticker from the universe of stocks within your longshort strategy.
+
+longshort run
+    Begins running longshort strategy.
+
+longshort kill
+    Terminates longshort.
+    
+longshort view 
+    View current universe of stocks.
+
+positions 
+    Shows current portfolio positions and profits/loss from each position
+```
