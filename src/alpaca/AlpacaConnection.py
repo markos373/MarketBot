@@ -28,33 +28,32 @@ class AlpacaConnection:
         if type == 'get':
             logging.info('Alpaca: making get request to '+endpoint)
             try: 
-                func = requests.get(url = endpoint, headers = self.header) 
+                resp = requests.get(url = endpoint, headers = self.header, params=params) 
             except Exception as e:
                 logging.error("ERROR: REQUEST.GET FAILED")
                 print(e.args)
-            return func
+            return resp
 
         elif type == 'post':
             logging.info('Alpaca: making post request to '+endpoint)
             data = json.dumps(params)
             try:
-                func = requests.post(url = endpoint, data = data, headers = self.header)
+                resp = requests.post(url = endpoint, data = data, headers = self.header)
             except Exception as e:
                 logging.error("ERROR: REQUEST.POST FAILED")
                 print(e.args)
-            return func
+            return resp
 
         elif type == 'delete':
             logging.info('Alpaca: making delete request to '+endpoint)
             try:
-                func = requests.delete(url = endpoint, headers = self.header)
+                resp = requests.delete(url = endpoint, headers = self.header)
             except Exception as e:
                 logging.error("ERROR: REQUEST.DELETE FAILED")
                 print(e.args)
-            return func        
+            return resp        
         else:
             logging.fatal("ERROR: BAD ARGUMENTS")
-            print("requestFunc failed")
         
     def submitOrder(self, ticker, qty, side,ordertype,tz):
         params = {
@@ -140,7 +139,6 @@ class AlpacaConnection:
         else: 
             return "successfully removed symbol " + ticker + " from " + name
  
-    
     def deleteWatchlist(self,name):
         id = self.watchlists[name]
         endpoint = API_WATCHLIST_URL + '/' + id
@@ -150,3 +148,13 @@ class AlpacaConnection:
 
     def buildErrorMessage(self, error):
         return str(error) + str(error.status_code)   
+
+    def porfolio_history(self,period,timeframe,date_end,extended_hours):
+        params = {
+            'period':period,
+            'timeframe':timeframe,
+            'date_end':date_end,
+            'extended_hours':extended_hours
+        }
+        resp = self.requestsFunc('get',API_ACCOUNT_URL+'/portfolio/history',params)
+        return resp.json()

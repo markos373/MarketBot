@@ -112,7 +112,6 @@ class LongShort:
         self.algosleep(60 * 15)
       else:
         # Rebalance the portfolio.
-        print('rebalance???')
         tRebalance = threading.Thread(target=self.rebalance)
         tRebalance.start()
         tRebalance.join()
@@ -397,6 +396,7 @@ class message_queue:
     self.pipe = pipe
 
   def add_msg(self, msg):
+    print('added message to queue:',msg,self.msg_count,'out of 10')
     self.message += msg + '\n'
     self.msg_count += 1
     if self.msg_count == 10:
