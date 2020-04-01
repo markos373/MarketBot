@@ -30,4 +30,11 @@ longshort view
 
 positions 
     Shows current portfolio positions and profits/loss from each position
+    
+show positions
+    Shows the distribution of the current positions in a pie chart
+    
+show portfolio [day/week/month/year] 
+    Shows the graph for the equity portfolio of the account for the specified time period (ending on the current day)
+    If not specified, it will default to week
 ```
