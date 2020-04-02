@@ -1,7 +1,7 @@
 import discord
 from strats.longshort import LongShort
 from AlphaVantage.AlphaParser import AlphaParser
-from prettytable import PrettyTable
+#from prettytable import PrettyTable
 import threading
 import asyncio
 import multiprocessing as mp
@@ -97,8 +97,8 @@ class DiscordBot:
                         msg = self.help('watchlist')
                     elif 'longshort' in input:
                         msg = self.help('longshort')
-                    elif 'algo' in input:
-                        msg = self.help('algo')
+                    elif 'show' in input:
+                        msg = self.help('show')
                     elif 'positions' in input:
                         msg = self.help('positions')
                     else: 
@@ -135,8 +135,7 @@ class DiscordBot:
                         print("symbol: " + symbol)
                         msg = self.removeSymbol(watchlistid, symbol)
                     else:
-                        msg = 'how can I help? (type \'help\' to see options)'
-
+                        msg = 'requires additonal input!'
                 ### I dont think this is needed but I'm leaving it here just in case - Solomon 
                         #i = input.index('add')
                         #if not input[i+1]:
@@ -163,8 +162,7 @@ class DiscordBot:
                         else:
                             rmlist = str(input[input.index('remove')+1])
                             msg = msg.format(rmlist)
-                            self.LSUniverse.remove(rmlist)
-                        
+                            self.LSUniverse.remove(rmlist)                      
                     elif 'run' in input:
                         msg = self.start_instance(p2)
                     elif 'kill' in input:
@@ -246,12 +244,12 @@ class DiscordBot:
             helpmenu += '\t-data\n'
             helpmenu += '\t-watchlist\n'
             helpmenu += '\t-longshort\n'
-            helpmenu += '\t-algo\n'
+            helpmenu += '\t-show\n'
             helpmenu += '\t-positions\n'
             helpmenu += 'For more help, enter: help [command]\n'
         elif menu == 'data':
             helpmenu = '**data** command options:\n'
-            helpmenu += '\t-**data** | info: @@@@@provides data values for SMA\n'
+            helpmenu += '\t-**data** | info: shows latest 30 SMA values\n'
             helpmenu += '\t\tenter: data\n' 
         elif menu == 'watchlist':
             helpmenu = '**watchlist** command options:\n'
@@ -269,23 +267,25 @@ class DiscordBot:
             helpmenu += '\t\tenter: watchlist remove [watchlist] [symbol]\n\n'   
         elif menu == 'longshort':
             helpmenu = '**longshort** command options:\n'
-            helpmenu += '\t-**add** | info: @@@@@@add symbol to longshort (multiple symbols allowed, separate with \',\')\n'
+            helpmenu += '\t-**add** | info: add symbol to longshort (multiple symbols allowed, separate with \',\')\n'
             helpmenu += '\t\tenter: longshort add [symbol]\n\n'                       
-            helpmenu += '\t-**remove** | info: @@@@@remove symbol from longshort (multiple symbols allowed, separate with \',\')\n'
+            helpmenu += '\t-**remove** | info: remove symbol from longshort (multiple symbols allowed, separate with \',\')\n'
             helpmenu += '\t\tenter: longshort remove [symbol]\n\n'
-            helpmenu += '\t-**run** | info: @@@@@start longshort\n'
+            helpmenu += '\t-**run** | info: start longshort\n'
             helpmenu += '\t\tenter: longshort run\n\n'
-            helpmenu += '\t-**kill** | info: @@@@@@terminate longshort\n'
+            helpmenu += '\t-**kill** | info: terminate longshort\n'
             helpmenu += '\t\tenter: longshort kill\n\n'
-            helpmenu += '\t-**view** | info: @@@@@@view all symbols in longshort\n'
+            helpmenu += '\t-**view** | info: view all symbols in longshort\n'
             helpmenu += '\t\tenter: longshort view\n\n'   
-        elif menu == 'algo':
-            helpmenu = '**algo** command options:\n'
-            helpmenu += '\t-**algo** | info: @@@@@@\n'
-            helpmenu += '\t\tenter: algo\n\n'
+        elif menu == 'show':
+            helpmenu = '**show** command options:\n'
+            helpmenu += '\t-**positions** | info: displays positions chart\n'
+            helpmenu += '\t\tenter: show positions\n\n'
+            helpmenu += '\t-**portfolio** | info: displays past week portfolio graph\n'
+            helpmenu += '\t\tenter: show portfolio\n\n'
         elif menu == 'positions':
             helpmenu = '**positions** command options:\n'
-            helpmenu += '\t-**positions** | info: @@@@@@displays table of positions\n'
+            helpmenu += '\t-**positions** | info: displays positions table\n'
             helpmenu += '\t\tenter: positions\n\n'
         else:
             print("no menu option stated\n")
@@ -313,9 +313,8 @@ class DiscordBot:
 
     def getdata(self):
         d = self.alpha.getSMAvalue()
-        d = d[list(d.keys())[1]]
-        d = d[list(d.keys())[0]]
-        return d
+        l = self.alpha.tprint(d)
+        return l
 
     def createWatchlist(self, watchlist):
         try:

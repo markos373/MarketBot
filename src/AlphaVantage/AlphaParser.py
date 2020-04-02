@@ -18,13 +18,20 @@ class AlphaParser:
     
     #Temp Print
     def tprint(self, myDict):
+        bigList = "Past 30 SMA values:\n"
         for i in myDict.keys():
             print("-----------------------------------------------------------------------------------")
             print(i)
+            count = 0
             for dates, num in myDict[i].items():
                 functionType = list(num.keys())
                 num2 = list(num.values())
                 print(dates + ": " + num2[0] + " | " + functionType[0])
+                if count < 30:
+                    line = dates + ": " + num2[0] + "\n"
+                    bigList += line
+                count += 1
+        return bigList
 
     #Parse Data Set
     #returns data under "Technical Analysis: [functionType]"
