@@ -91,7 +91,18 @@ class DiscordBot:
                 # messages in dm
                 # this is where we parse user messages
                 if 'help' in input:
-                    msg = self.help()
+                    if 'data' in input:
+                        msg = self.help('data')
+                    elif 'watchlist' in input:                
+                        msg = self.help('watchlist')
+                    elif 'longshort' in input:
+                        msg = self.help('longshort')
+                    elif 'algo' in input:
+                        msg = self.help('algo')
+                    elif 'positions' in input:
+                        msg = self.help('positions')
+                    else: 
+                        msg = self.help('default')
                 elif 'data' in input:
                     # for now we will just return SMA
                     msg = self.getdata()
@@ -123,6 +134,9 @@ class DiscordBot:
                         symbol = ' '.join(input[input.index(watchlistid)+1:])
                         print("symbol: " + symbol)
                         msg = self.removeSymbol(watchlistid, symbol)
+                    else:
+                        msg = 'how can I help? (type \'help\' to see options)'
+
                 ### I dont think this is needed but I'm leaving it here just in case - Solomon 
                         #i = input.index('add')
                         #if not input[i+1]:
@@ -226,22 +240,55 @@ class DiscordBot:
         self.client.loop.create_task(self.listener())
         self.client.run(self.token)        
 
-    def help(self):
-        helpmenu = 'options:\n'
-        helpmenu += '\t-watchlist:\n'
-        helpmenu += '\t\t-create [inputs: \'symbol_0\',\'symbol_1\', ..]\n'
-        helpmenu += '\t\t example: watchlist create MSFT TSLA\n'
-        helpmenu += '\t\t-view\n'
-        helpmenu += '\t\t\t view all\n'
-        helpmenu += '\t\t\t returns the name of all watchlists\n'
-        helpmenu += '\t\t\t [watchlist name]\n'
-        helpmenu += '\t\t\t returns specified watchlist\n'
-        helpmenu += '\t\t-add\n'
-        helpmenu += '\t\t\t example: watchlist add [watchlistname] [symbol]\n'   
-        helpmenu += '\t\t-remove\n'
-        helpmenu += '\t\t\t example: watchlist remove [watchlistname] [symbol]\n'        
-        helpmenu += '\t\t-delete\n'
-        helpmenu += '\t\t\t example: watchlist delete [watchlistname]'
+    def help(self, menu):
+        if menu == 'default':
+            helpmenu = 'Command options:\n'
+            helpmenu += '\t-data\n'
+            helpmenu += '\t-watchlist\n'
+            helpmenu += '\t-longshort\n'
+            helpmenu += '\t-algo\n'
+            helpmenu += '\t-positions\n'
+            helpmenu += 'For more help, enter: help [command]\n'
+        elif menu == 'data':
+            helpmenu = '**data** command options:\n'
+            helpmenu += '\t-**data** | info: @@@@@provides data values for SMA\n'
+            helpmenu += '\t\tenter: data\n' 
+        elif menu == 'watchlist':
+            helpmenu = '**watchlist** command options:\n'
+            helpmenu += '\t-**create** | info: creates watchlist\n'
+            helpmenu += '\t\tenter: watchlist create [watchlist]\n\n'
+            helpmenu += '\t-**delete** | info: deletes specified watchlist\n'  
+            helpmenu += '\t\tenter: watchlist delete [watchlist]\n\n'  
+            helpmenu += '\t-**view** | info: returns specified watchlist\n'
+            helpmenu += '\t\tenter: watchlist view [watchlist]\n\n'
+            helpmenu += '\t-**view all** | info: returns all watchlists\n'  
+            helpmenu += '\t\tenter: watchlist view all\n\n'   
+            helpmenu += '\t-**add** | info: adds specified symbol to specified watchlist\n'  
+            helpmenu += '\t\tenter: watchlist add [watchlist] [symbol]\n\n'  
+            helpmenu += '\t-**remove** | info: removes specified symbol from specified watchlist\n'  
+            helpmenu += '\t\tenter: watchlist remove [watchlist] [symbol]\n\n'   
+        elif menu == 'longshort':
+            helpmenu = '**longshort** command options:\n'
+            helpmenu += '\t-**add** | info: @@@@@@add symbol to longshort (multiple symbols allowed, separate with \',\')\n'
+            helpmenu += '\t\tenter: longshort add [symbol]\n\n'                       
+            helpmenu += '\t-**remove** | info: @@@@@remove symbol from longshort (multiple symbols allowed, separate with \',\')\n'
+            helpmenu += '\t\tenter: longshort remove [symbol]\n\n'
+            helpmenu += '\t-**run** | info: @@@@@start longshort\n'
+            helpmenu += '\t\tenter: longshort run\n\n'
+            helpmenu += '\t-**kill** | info: @@@@@@terminate longshort\n'
+            helpmenu += '\t\tenter: longshort kill\n\n'
+            helpmenu += '\t-**view** | info: @@@@@@view all symbols in longshort\n'
+            helpmenu += '\t\tenter: longshort view\n\n'   
+        elif menu == 'algo':
+            helpmenu = '**algo** command options:\n'
+            helpmenu += '\t-**algo** | info: @@@@@@\n'
+            helpmenu += '\t\tenter: algo\n\n'
+        elif menu == 'positions':
+            helpmenu = '**positions** command options:\n'
+            helpmenu += '\t-**positions** | info: @@@@@@displays table of positions\n'
+            helpmenu += '\t\tenter: positions\n\n'
+        else:
+            print("no menu option stated\n")
         return helpmenu
 
     # p2 is the pipe for the algo instance to talk through
