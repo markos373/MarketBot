@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     
     alpaca = AlpacaConnection(logger, key_id, secret_key)
-    print('hhee')
+    print('alpaca successfully initiated')
     # print(alpaca.getAccountInformation())
 
     alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")

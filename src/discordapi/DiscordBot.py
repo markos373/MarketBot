@@ -5,6 +5,7 @@ from prettytable import PrettyTable
 import threading
 import asyncio
 import multiprocessing as mp
+from chartgen.imgGenerator import imgGenerator
 
 # piping protocol: calling recv on an empty pipe will cause the program to indefinitely hang
 # to get around this, we use two threading.Event() with it as a triple.
@@ -46,6 +47,9 @@ class DiscordBot:
         self.instance = None
         self.user = None
         self.logger = logger
+        # not sure if this is good practice to keep reusing this alpaca object
+        # but i will coz why not
+        self.img_gen = imgGenerator(self.alpaca,self.logger)
 
         self.instance_kill = False        
     
@@ -170,9 +174,20 @@ class DiscordBot:
                     else:
                         msg = """longshort [add/remove] TICKER,TICKER\n
                                ex: longshort add AAPL,MMM"""
-                elif 'algo' in input:
-                    print("user said algo!")
-                    self.algopipe.send("hey there algo")
+                elif 'show' in input:
+                    picture = False
+                    if 'goose' in input:
+                        goosepicture = 'img/madgoose.png'
+                        picture = discord.File(goosepicture)
+                    elif 'positions' in input:
+                        picture = self.img_gen.positions_chart()
+                    elif 'portfolio' in input:
+                        timeperiod = 'week'
+                        if len(input) > input.index('portfolio')+1:
+                            timeperiod = input[input.index('portfolio')+1]
+                        picture = self.img_gen.portfolio_graph(timeperiod)
+                    
+                    if picture: await message.channel.send(file = picture)
                 elif 'positions' in input:
                     positions = self.alpaca.listPositions()
                     headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
