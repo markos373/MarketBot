@@ -241,11 +241,11 @@ class DiscordBot:
     def help(self, menu):
         if menu == 'default':
             helpmenu = 'Command options:\n'
-            helpmenu += '\t-data\n'
-            helpmenu += '\t-watchlist\n'
             helpmenu += '\t-longshort\n'
             helpmenu += '\t-show\n'
             helpmenu += '\t-positions\n'
+            helpmenu += '\t-watchlist\n'
+            helpmenu += '\t-data\n'
             helpmenu += 'For more help, enter: help [command]\n'
         elif menu == 'data':
             helpmenu = '**data** command options:\n'
