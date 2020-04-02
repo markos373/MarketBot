@@ -1,7 +1,7 @@
 import discord
 from strats.longshort import LongShort
 from AlphaVantage.AlphaParser import AlphaParser
-#from prettytable import PrettyTable
+from prettytable import PrettyTable
 import threading
 import asyncio
 import multiprocessing as mp
