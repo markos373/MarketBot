@@ -120,3 +120,8 @@ class imgGenerator:
         plt.close()
         self.logger.info("ChartGenerator: Created "+img_prefix+filename+" for output")
         return self.prep(filename)
+
+    def performaces(self,top=5):
+        # this function will return a bar graph of how each stock performs 
+        # default of top 5 stock
+        return self.prep('madgoose.png')
