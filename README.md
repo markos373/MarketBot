@@ -10,6 +10,7 @@ Initialize your configuration with the following in MarketBot/settings.json
         "alpaca_private_key": "",
         "alphavantage_key": "",
         "discord_token": ""
+        "discord_user_id": ""
     }
 }
 
