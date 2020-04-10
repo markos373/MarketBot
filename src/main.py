@@ -24,7 +24,7 @@ if __name__ == "__main__":
         secret_key = data["config"]["alpaca_private_key"]
         AlphaAPIKey = data["config"]["alphavantage_key"]
         discordToken = data["config"]["discord_token"]
-        user_id = data['config']['user_id']
+        user_id = data['config']['discord_user_id']
     except:
         logger.fatal("ERROR: failed to extract keys from configuration file located at \"%s\"" % CONFIGURATION_FILE_PATH)
         print("settings file required!")
