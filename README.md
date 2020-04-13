@@ -5,7 +5,6 @@ Initialize your configuration with the following in MarketBot/settings.json
 ```
 {
     "config": {
-        "requests_interval_millis": "12000",
         "alpaca_key_id": "",
         "alpaca_private_key": "",
         "alphavantage_key": "",
