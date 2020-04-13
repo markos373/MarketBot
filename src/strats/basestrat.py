@@ -1,39 +1,43 @@
 import multiprocessing as mp
 import time
 import threading
+import datetime
 
 '''
 How to use:
 use the longshort class as an example.
 In the __init__ funciton, include a call to
-super().__init__(pipe,logger)
+super().__init__(pipe,logger,alpaca)
 this will take care of the pipeline creation
 
-to send a message to the user directly, use self.talk()
-to store messages in a queue to burst after a certain point, 
+To send a message to the user directly, use self.talk()
+
+To store messages in a queue to burst after a certain point, 
 (useful in case of too many messages) use self.m_queue.add_msg()
-and it will take care of sending the message on its own
+and it will take care of sending the message on its own 
+(after it stacks to 10 messages)
 
-Also to make sure the running loops are terminated, use self.stop as a checking point
-and use self.killcheck() to terminate the listener correctly.\
+To make sure the running loops are terminated, 
+use self.stop as a checking parameter (ex. 'while not self.stop')
+and use self.killcheck() to terminate the listener correctly.
 
-And whenever sleep calls are necessary, use self.asleep() instead. 
+Whenever sleep calls are necessary, use self.asleep() instead. 
 This will ensure the termination happens immediately rather than 
 waiting on the sleep call to finish
+
+To check if market is open (and wait if it is not), call self.checkMarketOpen()
+This function will keep everything on hold if market is not open, and will pass if it is open
 '''
 
-
-
-
 class BaseStrat:
-    def __init__(self, pipe, logger):
+    def __init__(self, pipe, logger, alpaca):
         print('base class here')
         self.pipe = pipe
         self.stop = False
         self.logger = logger
+        self.alpaca = alpaca
         self.listener = threading.Thread(target= self.waiter_thread)
         self.m_queue = message_queue(self.pipe)
-
         self.listener.start()
         print('started listner')
 
@@ -47,8 +51,8 @@ class BaseStrat:
                     self.kill()
                     return
                 else:
+                    # add additional parameters in here
                     print("discord said something!")
-                    self.m_queue.add_msg("hey discord this me")
 
     def talk(self,msg):
         self.pipe.send(msg)
@@ -63,7 +67,6 @@ class BaseStrat:
             print('killing listener first')
             self.listener.join()
             self.logger.info("Algo: listener successfully terminated")
-        return        
 
     def asleep(self,t):
         # im gonna replace all the time sleep calls with this so that 
@@ -73,8 +76,25 @@ class BaseStrat:
             time.sleep(1)
             counter += 1
         self.logger.info('Algo: This guy tried to sleep but he ain\'t slick')
-        return
-    
+
+    def checkMarketOpen(self):
+        tAMO = threading.Thread(target=self.awaitMarketOpen)
+        tAMO.start()
+        tAMO.join()
+
+    def awaitMarketOpen(self):
+        isOpen = self.alpaca.get_clock().is_open
+        while not isOpen and not self.stop:
+            clock = self.alpaca.get_clock()
+            openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
+            currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
+            timeToOpen = int((openingTime - currTime) / 60)
+            self.m_queue.add_msg(str(timeToOpen) + " minutes til market open.")      
+            self.asleep(60 * 5)
+            # five minutes
+            isOpen = self.alpaca.get_clock().is_open
+            self.killcheck()
+
 class message_queue:
     def __init__(self, pipe):
         self.message = ''

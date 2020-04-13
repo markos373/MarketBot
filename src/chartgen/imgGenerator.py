@@ -70,8 +70,7 @@ class imgGenerator:
         eq = portfolio['equity']
         
         # here we do some funky stuff, since alpaca only allows for 1Min,15Min,1H,1D as timeframes
-        # and it doesn't work very nicely on periods such as day or week. 
-
+        # and it doesn't work very nicely on periods such as day or week.
 
         # not the best way to make the tick marks, but this is pretty simple so just gonna use this for now
         xlabel_swticher = {

@@ -12,11 +12,12 @@ APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 class LongShort(BaseStrat):
   def __init__(self, _API_KEY, _API_SECRET, pipe, logger, stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM']):
     # base class call!!
-    super().__init__(pipe,logger)
 
     API_KEY = _API_KEY
     API_SECRET = _API_SECRET
     self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
+
+    super().__init__(pipe,logger,self.alpaca)
     # Format the allStocks variable for use in the class.
     self.allStocks = []
     for stock in stockUniverse:
@@ -44,9 +45,7 @@ class LongShort(BaseStrat):
 
     # Wait for market to open.
     self.m_queue.add_msg("Waiting for market to open...")
-    tAMO = threading.Thread(target=self.awaitMarketOpen)
-    tAMO.start()
-    tAMO.join()
+    self.checkMarketOpen()
     
     # the waiting thread may be killed while the market is open, so check flag
     if not self.stop:
@@ -91,21 +90,6 @@ class LongShort(BaseStrat):
     print("about to send kill success msg to discord")
     self.logger.info('Algo: successfully killed all threads')
     self.talk("#kill-success")
-
-  # Wait for market to open.
-  def awaitMarketOpen(self):
-    isOpen = self.alpaca.get_clock().is_open
-    while not isOpen and not self.stop:
-      clock = self.alpaca.get_clock()
-      openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
-      currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
-      timeToOpen = int((openingTime - currTime) / 60)
-      self.m_queue.add_msg(str(timeToOpen) + " minutes til market open.")      
-      self.asleep(60 * 5)
-      # five minutes
-      isOpen = self.alpaca.get_clock().is_open
-      
-      self.killcheck()
 
   def rebalance(self):
     tRerank = threading.Thread(target=self.rerank)
