@@ -45,7 +45,8 @@ class DiscordBot:
         self.token = token
         self.LSUniverse = set()
         self.instance = None
-        self.user = user
+        self.user = None
+        self.user_id = user
         self.logger = logger
         # not sure if this is good practice to keep reusing this alpaca object
         # but i will coz why not
@@ -83,9 +84,12 @@ class DiscordBot:
                     msg += self.respondMention()
             else:
                 sender = message.author.name+'#'+message.author.discriminator
-                if sender != self.user:
+                if sender != self.user_id:
                     await message.author.send('you are not my boss!')
                     return
+                elif not self.user:
+                    # we got the right user, so we now store the user object info here
+                    self.user = message.author
                 self.logger.info("Discord: User input = [{}]".format(message.content))
                 # messages in dm
                 # this is where we parse user messages
