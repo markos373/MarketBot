@@ -36,7 +36,7 @@ def create_pipe():
     return p1,p2
 
 class DiscordBot:
-    def __init__(self,token,alpha, alpaca, logger):
+    def __init__(self,token,alpha, alpaca, logger, user):
         self.client = discord.Client()
         self.alpha = alpha
         self.alpaca = alpaca
@@ -46,6 +46,7 @@ class DiscordBot:
         self.LSUniverse = set()
         self.instance = None
         self.user = None
+        self.user_id = user
         self.logger = logger
         # not sure if this is good practice to keep reusing this alpaca object
         # but i will coz why not
@@ -82,11 +83,13 @@ class DiscordBot:
                     print("I have been summoned")
                     msg += self.respondMention()
             else:
-                if not self.user:
-                    self.user = message.author
-                if message.author != self.user:
+                sender = message.author.name+'#'+message.author.discriminator
+                if sender != self.user_id:
                     await message.author.send('you are not my boss!')
                     return
+                elif not self.user:
+                    # we got the right user, so we now store the user object info here
+                    self.user = message.author
                 self.logger.info("Discord: User input = [{}]".format(message.content))
                 # messages in dm
                 # this is where we parse user messages

@@ -3,17 +3,21 @@ import threading
 import time
 import datetime
 import multiprocessing as mp
+from .basestrat import BaseStrat
 
 API_KEY = None
 API_SECRET = None
 APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
 
-
-class LongShort:
+class LongShort(BaseStrat):
   def __init__(self, _API_KEY, _API_SECRET, pipe, logger, stockUniverse = ['DOMO', 'TLRY', 'SQ', 'MRO', 'AAPL', 'GM']):
+    # base class call!!
+
     API_KEY = _API_KEY
     API_SECRET = _API_SECRET
     self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
+
+    super().__init__(pipe,logger,self.alpaca)
     # Format the allStocks variable for use in the class.
     self.allStocks = []
     for stock in stockUniverse:
@@ -29,54 +33,19 @@ class LongShort:
     self.longAmount = 0
     self.shortAmount = 0
     self.timeToClose = None
-    self.listener = threading.Thread(target= self.waiter_thread)
     self.logger = logger
-
-    # this variable stops all the loops
-    self.stop = False
-    self.pipe = pipe 
-
-    self.m_queue = message_queue(self.pipe)
 
     self.logger.info("Algo: Algorithm initiated")
 
-  def killcheck(self):
-    if self.stop:
-        print('killing listener first')
-        self.listener.join()
-        self.logger.info("Algo: listener successfully terminated")
-    return
-
-  def kill(self):
-    self.talk("wrapping up...")
-    self.logger.info("Algo: Setting stop to true..")
-    self.stop = True
-
-  def algosleep(self, t):
-    # im gonna replace all the time sleep calls with this so that 
-    # the thread doesnt sleep when the user wants it to die
-    counter = 0
-    while not self.stop and counter < t:
-      time.sleep(1)
-      counter += 1
-    
-    self.logger.info('Algo: This guy tried to sleep but he ain\'t slick')
-
-    return
-
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
-    self.listener.start()
-    print("started listner")
     orders = self.alpaca.list_orders(status="open")
     for order in orders:
       self.alpaca.cancel_order(order.id)
 
     # Wait for market to open.
     self.m_queue.add_msg("Waiting for market to open...")
-    tAMO = threading.Thread(target=self.awaitMarketOpen)
-    tAMO.start()
-    tAMO.join()
+    self.checkMarketOpen()
     
     # the waiting thread may be killed while the market is open, so check flag
     if not self.stop:
@@ -109,33 +78,18 @@ class LongShort:
 
         # Run script again after market close for next trading day.
         self.talk("Sleeping until market close (15 minutes).")
-        self.algosleep(60 * 15)
+        self.asleep(60 * 15)
       else:
         # Rebalance the portfolio.
         tRebalance = threading.Thread(target=self.rebalance)
         tRebalance.start()
         tRebalance.join()
-        self.algosleep(60)
+        self.asleep(60)
       self.logger.info('end of 1 iteration of the whileloop')
       self.killcheck()
     print("about to send kill success msg to discord")
     self.logger.info('Algo: successfully killed all threads')
     self.talk("#kill-success")
-
-  # Wait for market to open.
-  def awaitMarketOpen(self):
-    isOpen = self.alpaca.get_clock().is_open
-    while not isOpen and not self.stop:
-      clock = self.alpaca.get_clock()
-      openingTime = clock.next_open.replace(tzinfo=datetime.timezone.utc).timestamp()
-      currTime = clock.timestamp.replace(tzinfo=datetime.timezone.utc).timestamp()
-      timeToOpen = int((openingTime - currTime) / 60)
-      self.m_queue.add_msg(str(timeToOpen) + " minutes til market open.")      
-      self.algosleep(60 * 5)
-      # five minutes
-      isOpen = self.alpaca.get_clock().is_open
-      
-      self.killcheck()
 
   def rebalance(self):
     tRerank = threading.Thread(target=self.rerank)
@@ -372,34 +326,3 @@ class LongShort:
 
     # Sort the stocks in place by the percent change field (marked by pc).
     self.allStocks.sort(key=lambda x: x[1])
-
-  def waiter_thread(self):
-      while True:
-          if self.pipe.has_data():
-              msg = self.pipe.read()
-              if msg == 'kill':
-                print('kill signal received from discord')
-                self.logger.info('Algo: kill signal received from discord')
-                self.kill()
-                return
-              else:
-                print("discord said something!")
-                self.m_queue.add_msg("hey discord this me")
-
-  def talk(self,msg):
-    self.pipe.send(msg)
-
-class message_queue:
-  def __init__(self, pipe):
-    self.message = ''
-    self.msg_count = 0
-    self.pipe = pipe
-
-  def add_msg(self, msg):
-    print('added message to queue:',msg,self.msg_count,'out of 10')
-    self.message += msg + '\n'
-    self.msg_count += 1
-    if self.msg_count == 10:
-      self.pipe.send(self.message)
-      self.message = ''
-      self.msg_count = 0
