@@ -5,13 +5,8 @@ api_url = 'https://www.alphavantage.co/query'
 
 class AlphaParser:
 
-    def __init__(self,key,symbols,interval,time_period,series_type):
+    def __init__(self,key):
         self.key = key
-        self.symbols = []
-        self.symbols.append(symbols)
-        self.interval = interval
-        self.time_period = time_period
-        self.series_type = series_type    
         
     # Just a sample from the api documentation. 
     # To use other functions, check https://www.alphavantage.co/documentation/
@@ -46,22 +41,17 @@ class AlphaParser:
     # dataset = alpha.getSMAvalue()
 
     # Returns the simple moving average (SMA) values
-    def getSMAvalue(self):
-        finalDict = {}
-        for s in self.symbols:
-            parameters = {
-                'function' : 'SMA',
-                'symbol' : s,
-                'interval' : self.interval,
-                'time_period' : self.time_period,
-                'series_type' : self.series_type,
-                'apikey' : self.key
-            }
-            r = requests.get(api_url, parameters)
-            data = self.parseData(r.json())
-            finalDict[s] = data
-        self.tprint(finalDict)
-        return finalDict
+    def getSMA(self, symbol, interval,time_period,series_type):
+        parameters = {
+            'function' : 'SMA',
+            'symbol' : symbol,
+            'interval' : interval,
+            'time_period' : time_period,
+            'series_type' : series_type,
+            'apikey' : self.key
+        }
+        r = requests.get(api_url, parameters)
+        return r.text
 
     # Returns the exponential moving area (EMA) values
     def getEMAvalue(self):

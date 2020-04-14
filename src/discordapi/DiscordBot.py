@@ -1,5 +1,6 @@
 import discord
 from strats.longshort import LongShort
+from strats.indicatorstrat import IndicatorStrat
 from AlphaVantage.AlphaParser import AlphaParser
 from prettytable import PrettyTable
 import threading
@@ -43,7 +44,7 @@ class DiscordBot:
         self.wlist = None
         self.userSettings = {}
         self.token = token
-        self.LSUniverse = set()
+        self.StockUniverse = set()
         self.instance = None
         self.user = None
         self.user_id = user
@@ -149,11 +150,11 @@ class DiscordBot:
                         if ',' in input[input.index('add')+1]:
                             addlist = set(input[input.index('add')+1].split(","))
                             msg = msg.format(list(addlist))
-                            self.LSUniverse.update(addlist)
+                            self.StockUniverse.update(addlist)
                         else:
                             addlist = str(input[input.index('add')+1])
                             msg = msg.format(addlist)
-                            self.LSUniverse.add(addlist)
+                            self.StockUniverse.add(addlist)
                         
                     elif 'remove' in input:
                         msg = 'removing {}'
@@ -161,17 +162,17 @@ class DiscordBot:
                             rmlist = set(input[input.index('remove')+1].split(","))
                             msg = msg.format(list(rmlist))
                             for thing in rmlist:
-                                self.LSUniverse.discard(thing)
+                                self.StockUniverse.discard(thing)
                         else:
                             rmlist = str(input[input.index('remove')+1])
                             msg = msg.format(rmlist)
-                            self.LSUniverse.remove(rmlist)                      
+                            self.StockUniverse.remove(rmlist)                      
                     elif 'run' in input:
-                        msg = self.start_instance(p2)
+                        msg = self.start_instance(p2,"longshort")
                     elif 'kill' in input:
                         msg = await self.kill_instance()
                     elif 'view' in input:
-                        msg = "Stock Universe: {}".format(list(self.LSUniverse))
+                        msg = "Stock Universe: {}".format(list(self.StockUniverse))
                     else:
                         msg = """longshort [add/remove] TICKER,TICKER\n
                                ex: longshort add AAPL,MMM"""
@@ -197,6 +198,38 @@ class DiscordBot:
                         table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
                     msg = '```'+table.get_string()+'```'
                     print(table)
+                elif 'indicatorstrat' in input:
+                    if 'add' in input:
+                        msg = 'adding {}'
+                        if ',' in input[input.index('add')+1]:
+                            addlist = set(input[input.index('add')+1].split(","))
+                            msg = msg.format(list(addlist))
+                            self.StockUniverse.update(addlist)
+                        else:
+                            addlist = str(input[input.index('add')+1])
+                            msg = msg.format(addlist)
+                            self.StockUniverse.add(addlist)
+                        
+                    elif 'remove' in input:
+                        msg = 'removing {}'
+                        if ',' in input[input.index('remove')+1]:
+                            rmlist = set(input[input.index('remove')+1].split(","))
+                            msg = msg.format(list(rmlist))
+                            for thing in rmlist:
+                                self.StockUniverse.discard(thing)
+                        else:
+                            rmlist = str(input[input.index('remove')+1])
+                            msg = msg.format(rmlist)
+                            self.StockUniverse.remove(rmlist)                      
+                    elif 'run' in input:
+                        msg = self.start_instance(p2,"indicator")
+                    elif 'kill' in input:
+                        msg = await self.kill_instance()
+                    elif 'view' in input:
+                        msg = "Stock Universe: {}".format(list(self.StockUniverse))
+                    else:
+                        msg = """indicatorstrat [add/remove] TICKER,TICKER\n
+                               ex: indicatorstrat add AAPL,MMM"""
                 else:
                     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
@@ -295,12 +328,15 @@ class DiscordBot:
         return helpmenu
 
     # p2 is the pipe for the algo instance to talk through
-    def start_instance(self,pipe):
+    def start_instance(self,pipe,algo):
         self.logger.info('Discord: Received user input for algo start')
         msg = ''
         if self.instance is None:
-            msg = "Starting longshort!"
-            self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,pipe,self.logger,self.LSUniverse)
+            msg = "Starting {}!".format(algo)
+            if algo == "longshort":
+                self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,pipe,self.logger,self.StockUniverse)
+            if algo == "indicator":
+                self.algo = IndicatorStrat(self.alpha,self.alpaca.key_id, self.alpaca.secret_key,pipe,self.logger,self.StockUniverse)
             # self.instance = mp.Process(target=self.algo.run)
             self.instance = threading.Thread(target = self.algo.run)
             self.instance.start()

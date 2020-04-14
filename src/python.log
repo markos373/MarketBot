@@ -1,14 +1,13 @@
-[2020-03-24 17:26:56,735] WARNING: PyNaCl is not installed, voice will NOT be supported
-[2020-03-24 17:26:56,761] INFO: Discord: Bot initiated
-[2020-03-24 17:26:56,762] INFO: logging in using static token
-[2020-03-24 17:26:57,306] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
-[2020-03-24 17:26:57,312] INFO: Shard ID None has sent the IDENTIFY payload.
-[2020-03-24 17:26:57,460] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-1xmc",{"micros":107330,"calls":["discord-sessions-prd-1-68",{"micros":102836,"calls":["start_session",{"micros":99210,"calls":["api-prd-main-p80f",{"micros":94724,"calls":["get_user",{"micros":3699},"add_authorized_ip",{"micros":8080},"get_guilds",{"micros":9937},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: 8b99affcd4add53aa335ab0270091ef5).
-[2020-03-24 17:26:57,489] INFO: Discord: User input = [longshortte]
-[2020-03-24 17:26:57,654] INFO: Discord: User input = [longshortte]
-[2020-03-24 17:27:06,155] INFO: Discord: User input = [longshort]
-[2020-03-24 17:27:06,263] INFO: Discord: User input = [positions]
-[2020-03-24 17:27:15,509] INFO: Discord: User input = [longshort]
-[2020-03-24 17:27:18,449] INFO: Cleaning up tasks.
-[2020-03-24 17:27:18,449] INFO: Cleaning up after 5 tasks.
-[2020-03-24 17:27:18,559] INFO: Closing the event loop.
+[2020-04-14 15:20:17,106] INFO: Alpaca: making get request to https://paper-api.alpaca.markets/v2/watchlists
+[2020-04-14 15:20:17,326] INFO: Discord: Bot initiated
+[2020-04-14 15:20:17,330] INFO: logging in using static token
+[2020-04-14 15:20:17,652] INFO: Created websocket connected to wss://gateway.discord.gg?encoding=json&v=6&compress=zlib-stream
+[2020-04-14 15:20:17,655] INFO: Shard ID None has sent the IDENTIFY payload.
+[2020-04-14 15:20:17,736] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-2j9n",{"micros":53769,"calls":["discord-sessions-prd-1-60",{"micros":51308,"calls":["start_session",{"micros":49647,"calls":["api-prd-main-hws5",{"micros":45112,"calls":["get_user",{"micros":4776},"add_authorized_ip",{"micros":1951},"get_guilds",{"micros":2775},"coros_wait",{"micros":2}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: 8aaf74a94806b2feede86a9bf5dfb93f).
+[2020-04-14 15:20:24,061] INFO: Discord: User input = [indicatorstrat run]
+[2020-04-14 15:20:24,061] INFO: Discord: Received user input for algo start
+[2020-04-14 15:20:24,061] INFO: Indicator Strat: Algorithm initiated
+[2020-04-14 15:20:24,062] INFO: Discord: Algorithm initiated
+[2020-04-14 15:20:30,096] INFO: Cleaning up tasks.
+[2020-04-14 15:20:30,098] INFO: Cleaning up after 5 tasks.
+[2020-04-14 15:20:30,293] INFO: Closing the event loop.
