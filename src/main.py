@@ -35,7 +35,8 @@ if __name__ == "__main__":
     print('alpaca successfully initiated')
     # print(alpaca.getAccountInformation())
 
-    alpha = AlphaParser(AlphaAPIKey, "MSFT", "weekly","10","open")
+    alpha = AlphaParser(AlphaAPIKey)
+    #print(alpha.getSMA("MSFT","daily",180,"close"))
     #longshort = LongShort(key_id, secret_key)
     #tTrading = threading.Thread(target=longshort.run)
     #tTrading.start()
