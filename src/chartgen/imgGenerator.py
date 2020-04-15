@@ -21,9 +21,8 @@ class imgGenerator:
         self.logger.info('ChartGenerator: Preparing image file '+img_prefix+filepath+' to send through discord')
         return discord.File(img_prefix+filepath)
 
-    # the most basic one showing a piechart of positions currently held.
-    # now it makes a chart, so TODO: make more purchases and diversify 
-    # positions so we can see it actually works
+# TODO: add % signs to the pie chart - need to have some purchases ready for that
+# TODO: Add cash value to the chart as well.
     def positions_chart(self):
         self.logger.info('ChartGenerator: Starting to prepare positions chart')
         filename = 'positions.png'
@@ -35,11 +34,13 @@ class imgGenerator:
             labels.append(pos.symbol)
             sizes.append(int(pos.qty))
             explode.append(0.01)
-        plt.pie(sizes,explode=explode,labels=labels,shadow=True)
-        plt.savefig(img_prefix+filename)
-        plt.close()
-        self.logger.info('ChartGenerator: Created '+img_prefix+filename+' for output')
-        return self.prep(filename)
+        if po:
+            plt.pie(sizes,explode=explode,labels=labels,shadow=True)
+            plt.savefig(img_prefix+filename)
+            plt.close()
+            self.logger.info('ChartGenerator: Created '+img_prefix+filename+' for output')
+            return self.prep(filename)
+        else: return 'invalid'
     
     # base method for generating portfolio graphs. 
     # time can be day, week, month and year
