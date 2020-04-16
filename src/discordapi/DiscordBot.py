@@ -182,6 +182,9 @@ class DiscordBot:
                         picture = discord.File(goosepicture)
                     elif 'positions' in input:
                         picture = self.img_gen.positions_chart()
+                        if len(picture) > 1: 
+                            await message.channel.send(file=picture[0])
+                            picture = picture[1]
                     elif 'performance' in input:
                         timeperiod = 'week'
                         if len(input) > input.index('performance')+1:

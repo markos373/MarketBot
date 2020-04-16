@@ -21,25 +21,44 @@ class imgGenerator:
         self.logger.info('ChartGenerator: Preparing image file '+img_prefix+filepath+' to send through discord')
         return discord.File(img_prefix+filepath)
 
-# TODO: add % signs to the pie chart - need to have some purchases ready for that
-# TODO: Add cash value to the chart as well.
     def positions_chart(self):
         self.logger.info('ChartGenerator: Starting to prepare positions chart')
-        filename = 'positions.png'
+        lfilename = 'long_positions.png'
+        sfilename = 'short_positions.png'
         po = self.alpaca.listPositions()
-        labels = []
-        sizes = []
+        longs = {'labels':[],'sizes':[],'exp':[]}
+        shorts = {'labels':[],'sizes':[],'exp':[]}
         explode = []
         for pos in po:
-            labels.append(pos.symbol)
-            sizes.append(int(pos.qty))
-            explode.append(0.01)
+            if float(pos.market_value) > 0:
+                longs['sizes'].append(float(pos.market_value))
+                longs['labels'].append(pos.symbol+' '+str(pos.market_value))
+                longs['exp'].append(0.01)
+            else:
+                shorts['sizes'].append(float(pos.market_value)*-1)
+                shorts['labels'].append(pos.symbol+' '+str(pos.market_value))
+                shorts['exp'].append(0.01)
+            
         if po:
-            plt.pie(sizes,explode=explode,labels=labels,shadow=True)
-            plt.savefig(img_prefix+filename)
-            plt.close()
-            self.logger.info('ChartGenerator: Created '+img_prefix+filename+' for output')
-            return self.prep(filename)
+            ll = None
+            ss = None
+            if longs:
+                plt.pie(longs['sizes'],explode=longs['exp'],labels=longs['labels'],autopct='%0.2f%%',pctdistance=0.7, labeldistance=1.2)
+                plt.title('Long stocks')
+                plt.savefig(img_prefix+lfilename)
+                plt.close()
+                self.logger.info('ChartGenerator: Created '+img_prefix+lfilename+' for output')
+                ll = self.prep(lfilename)
+            if shorts:
+                plt.pie(shorts['sizes'],explode=shorts['exp'],labels=shorts['labels'],autopct='%0.2f%%', pctdistance=0.7, labeldistance=1.2)
+                plt.title('Short stocks')
+                plt.savefig(img_prefix+sfilename)
+                plt.close()
+                self.logger.info('ChartGenerator: Created '+img_prefix+sfilename+' for output')
+                ss = self.prep(sfilename)
+            if ll and ss: return ll,ss
+            elif ll: return ll
+            elif ss: return ss
         else: return 'invalid'
     
     # base method for generating portfolio graphs. 
@@ -121,7 +140,19 @@ class imgGenerator:
         self.logger.info("ChartGenerator: Created "+img_prefix+filename+" for output")
         return self.prep(filename)
 
-    def performaces(self,top=5):
+    def best_performers(self,top=5,timeframe='all_time'):
         # this function will return a bar graph of how each stock performs 
-        # default of top 5 stock
-        return self.prep('madgoose.png')
+        activities = self.alpaca.account_activities()
+        parsed = self.parse_activities(activities)
+        return parsed['GS']
+        # return self.prep('madgoose.png')
+
+    # helper function for best_performers
+    # should not be called anywhere else
+    def parse_activities(self,activities):
+        by_symbols = {}
+        for a in activities:
+            sym = a['symbol']
+            if sym not in by_symbols: by_symbols[sym] = [a]
+            else: by_symbols[sym].append(a)
+        return by_symbols
