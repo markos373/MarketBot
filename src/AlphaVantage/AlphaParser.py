@@ -22,7 +22,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Returns the exponential moving area (EMA) values
     def getEMA(self, symbol, interval, time_period, series_type):
@@ -35,7 +35,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Returns the volume weighted average price (VWAP) for intraday time series
     def getVWAP(self, symbol, interval, series_type):
@@ -47,7 +47,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Returns the moving average convergence / divergence (MACD) values
     def getMACD(self, symbol, interval, series_type):
@@ -59,7 +59,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Returns the stochastic oscillator (STOCH) values
     def getSTOCH(self, symbol, interval):
@@ -70,7 +70,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Returns the relative strength index (RSI) values
     def getRSI(self, symbol, interval, time_period, series_type):
@@ -83,7 +83,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Returns the average directional movement index (ADX) values
     def getADX(self, symbol, interval, time_period, series_type):
@@ -96,7 +96,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Returns the commodity channel index (CCI) values
     def getCCI(self, symbol, interval, time_period):
@@ -108,7 +108,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Returns the Aroon (AROON) values
     def getAROON(self, symbol, interval, time_period):
@@ -120,7 +120,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text      
+        return r.json()      
 
     # Returns the Bollinger bands (BBANDS) values
     def getBBANDS(self, symbol, interval, time_period, series_type):
@@ -133,7 +133,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text 
+        return r.json() 
 
     # Returns the Chaikin A/D line (AD) values
     def getAD(self, symbol, interval):
@@ -144,7 +144,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Returns the on balance volume (OBV) values
     def getOBV(self, symbol, interval):
@@ -155,7 +155,7 @@ class AlphaParser:
             'apikey' : self.key
         }
         r = requests.get(api_url, parameters)
-        return r.text
+        return r.json()
 
     # Change Interval
     def changeInterval(self, new_interval):
