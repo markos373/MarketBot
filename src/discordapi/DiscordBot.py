@@ -67,7 +67,7 @@ class DiscordBot:
 
         @self.client.event
         async def on_ready():
-            print(f'{self.client.user} is a very bad bot')
+            print(f'{self.client.user} is now online!')
 
         @self.client.event
         async def on_message(message):
@@ -78,7 +78,7 @@ class DiscordBot:
             input = message.content.split()
             if not isinstance(message.channel,discord.DMChannel):
             # messages in server
-                print("message in guild!")
+                print("Server message:")
                 if '672484881208442894' in message.content:
                     # bot is mentioned
                     print("I have been summoned")
@@ -198,7 +198,7 @@ class DiscordBot:
                         table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
                     msg = '```'+table.get_string()+'```'
                     print(table)
-                elif 'indicatorstrat' in input:
+                elif 'istrat' in input:
                     if 'add' in input:
                         msg = 'adding {}'
                         if ',' in input[input.index('add')+1]:
@@ -360,7 +360,7 @@ class DiscordBot:
             self.alpaca.createWatchlist(watchlist)
         except:
             print('something messed up')
-        return "watchlist successfully created!"
+        return "Watchlist successfully created!"
     
     def deleteWatchlist(self,watchlist):
         self.alpaca.deleteWatchlist(watchlist)
@@ -372,7 +372,7 @@ class DiscordBot:
 
     def viewWatchlist(self,name):
         if name not in self.alpaca.watchlists.keys():
-            return 'please provide a valid watchlist name!'
+            return 'Please provide a valid watchlist name!'
         wlist = self.alpaca.viewWatchlist(name)
         returnstring = ''
         for k,v in wlist.items():

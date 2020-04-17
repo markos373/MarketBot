@@ -6,17 +6,6 @@ import multiprocessing as mp
 from .basestrat import BaseStrat
 from AlphaVantage import AlphaParser
 
-
-"""
-RSI ( ticker, interval, time_period, close/open/high/low )
-what values for interval / time period / series type?
-
-SMA ( ticker, daily, 180, ^^^^^^^^^^^^^^^^^^^^ )
-
-if curr_price > SMA ( ticker, daily, timeperiod? ^^^^^^^^^^^^^^^^^^^^ )
-then buy
-else sell
-"""
 API_KEY = None
 API_SECRET = None
 APCA_API_BASE_URL = "https://paper-api.alpaca.markets"
@@ -40,9 +29,20 @@ class IndicatorStrat(BaseStrat):
     Run calculations
     Return True for buy, False for sell
     '''
-    a = self.alpha_instance.getSMA(ticker, "daily", 10, "close")
-    print(a)
-    return "NOT IMPLEMENTED"
+    data = self.alpha_instance.getSMA(ticker, "daily", 20, "open")
+    short_term = get_most_recent(data,"SMA")
+
+    data = self.alpha_instance.getSMA(ticker, "daily", 100, "open")
+    long_term = get_most_recent(data,"SMA")
+    
+    print("short: {} vs long: {}".format(short_term,long_term))
+
+    data = self.alpha_instance.getRSI(ticker, "daily", 90, "open")
+    rsi_short_term = get_most_recent(data,"RSI")
+    if short_term > long_term and rsi_short_term < 0.3:
+      return False
+    else:
+      return True
 
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
@@ -51,13 +51,16 @@ class IndicatorStrat(BaseStrat):
       self.alpaca.cancel_order(order.id)
 
     # Wait for market to open.
+    '''
+    uncomment when real testing
     self.m_queue.add_msg("Waiting for market to open...")
     self.checkMarketOpen()
 
     # the waiting thread may be killed while the market is open, so check flag
     if not self.stop:
       self.m_queue.add_msg("Market opened.")
-    self.get_action("MSFT")
+    '''
+    self.get_action("GE")
     return
     # max_positions = 5
     # pos_alloc = 1.0 / max_positions
@@ -69,4 +72,15 @@ class IndicatorStrat(BaseStrat):
     #         else:
     #             #sell
             
-        
+
+def get_most_recent(data,indicator):
+  '''
+  Takes raw AlphaVantage data, with indicator such as "SMA","EMA",etc... and returns most recent value
+  '''
+  ta_str = "Technical Analysis: {}".format(indicator)
+  ta_data = data[ta_str]
+  recent = None
+  for date in ta_data:
+    recent = ta_data[date]
+    break
+  return recent[indicator]
