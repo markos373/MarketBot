@@ -32,14 +32,7 @@ if __name__ == "__main__":
 
     
     alpaca = AlpacaConnection(logger, key_id, secret_key)
-    print('alpaca successfully initiated')
-    # print(alpaca.getAccountInformation())
-
     alpha = AlphaParser(AlphaAPIKey)
-    #print(alpha.getSMA("MSFT","daily",180,"close"))
-    #longshort = LongShort(key_id, secret_key)
-    #tTrading = threading.Thread(target=longshort.run)
-    #tTrading.start()
     bot = DiscordBot(discordToken, alpha, alpaca,logger,user_id)
     bot.run()
     
