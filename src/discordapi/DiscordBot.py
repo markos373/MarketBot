@@ -174,8 +174,7 @@ class DiscordBot:
                     elif 'view' in input:
                         msg = "Stock Universe: {}".format(list(self.StockUniverse))
                     else:
-                        msg = """longshort [add/remove] TICKER,TICKER\n
-                               ex: longshort add AAPL,MMM"""
+                        msg = """longshort [add/remove] TICKER,TICKER\n     ex: longshort add AAPL,MMM"""
                 elif 'show' in input:
                     picture = False
                     if 'goose' in input:
@@ -183,13 +182,17 @@ class DiscordBot:
                         picture = discord.File(goosepicture)
                     elif 'positions' in input:
                         picture = self.img_gen.positions_chart()
-                    elif 'portfolio' in input:
+                        if len(picture) > 1: 
+                            await message.channel.send(file=picture[0])
+                            picture = picture[1]
+                    elif 'performance' in input:
                         timeperiod = 'week'
-                        if len(input) > input.index('portfolio')+1:
-                            timeperiod = input[input.index('portfolio')+1]
+                        if len(input) > input.index('performance')+1:
+                            timeperiod = input[input.index('performance')+1]
                         picture = self.img_gen.portfolio_graph(timeperiod)
-                    
-                    if picture: await message.channel.send(file = picture)
+                    if picture and picture != 'invalid': await message.channel.send(file = picture)
+                    elif picture == 'invalid': msg = 'No positions to display!'
+                    else: msg = '''show [positions/performance] \n      ex: show performance [day/week/month]'''
                 elif 'positions' in input:
                     positions = self.alpaca.listPositions()
                     headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
@@ -228,8 +231,7 @@ class DiscordBot:
                     elif 'view' in input:
                         msg = "Stock Universe: {}".format(list(self.StockUniverse))
                     else:
-                        msg = """indicatorstrat [add/remove] TICKER,TICKER\n
-                               ex: indicatorstrat add AAPL,MMM"""
+                        msg = """indicatorstrat [add/remove] TICKER,TICKER\n        ex: indicatorstrat add AAPL,MMM"""
                 else:
                     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
@@ -317,8 +319,8 @@ class DiscordBot:
             helpmenu = '**show** command options:\n'
             helpmenu += '\t-**positions** | info: displays positions chart\n'
             helpmenu += '\t\tenter: show positions\n\n'
-            helpmenu += '\t-**portfolio** | info: displays past week portfolio graph\n'
-            helpmenu += '\t\tenter: show portfolio\n\n'
+            helpmenu += '\t-**performance** | info: displays past week performance graph\n'
+            helpmenu += '\t\tenter: show performance\n\n'
         elif menu == 'positions':
             helpmenu = '**positions** command options:\n'
             helpmenu += '\t-**positions** | info: displays positions table\n'
