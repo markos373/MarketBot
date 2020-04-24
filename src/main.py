@@ -31,7 +31,7 @@ if __name__ == "__main__":
         print("settings file required!")
         sys.exit()
         
-    strats.backtest.run(key_id,secret_key,True)
+    strats.backtest.run(key_id,secret_key,True,['AAPL','MSFT','TSLA'])
     
     #test.run()
     #alpaca = AlpacaConnection(logger, key_id, secret_key)
