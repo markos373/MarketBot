@@ -3,6 +3,7 @@ from alpaca.AlpacaConnection import AlpacaConnection
 from AlphaVantage.AlphaParser import AlphaParser
 from discordapi.DiscordBot import DiscordBot
 from strats.longshort import LongShort
+import strats.backtest
 import json
 import logging
 import sys
@@ -29,12 +30,14 @@ if __name__ == "__main__":
         logger.fatal("ERROR: failed to extract keys from configuration file located at \"%s\"" % CONFIGURATION_FILE_PATH)
         print("settings file required!")
         sys.exit()
-
+        
+    strats.backtest.run(key_id,secret_key,True)
     
-    alpaca = AlpacaConnection(logger, key_id, secret_key)
-    alpha = AlphaParser(AlphaAPIKey)
-    bot = DiscordBot(discordToken, alpha, alpaca,logger,user_id)
-    bot.run()
+    #test.run()
+    #alpaca = AlpacaConnection(logger, key_id, secret_key)
+    #alpha = AlphaParser(AlphaAPIKey)
+    #bot = DiscordBot(discordToken, alpha, alpaca,logger,user_id)
+    #bot.run()
     
     logging.shutdown()
 
