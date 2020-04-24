@@ -3,7 +3,6 @@ import backtrader as bt
 from datetime import datetime
 
 
-
 class SmaCross1(bt.Strategy):
     # list of parameters which are configurable for the strategy
     params = dict(
@@ -36,51 +35,64 @@ class SmaCross1(bt.Strategy):
         print('==================================================')
 
     def __init__(self):
+        # this checks how many datas is being put in
+        for i in range(1000):
+            dname = 'data' + str(i)
+            if not hasattr(self,dname):
+                self.num_data = i
+                break
+
         sma1 = bt.ind.SMA(self.data0, period=self.p.pfast)
         sma2 = bt.ind.SMA(self.data0, period=self.p.pslow)
-        self.crossover = bt.ind.CrossOver(sma1, sma2)
+        self.crossover0 = bt.ind.CrossOver(sma1, sma2)
 
         rsi = bt.indicators.RSI(period=self.p.rsi_per,
                                 upperband=self.p.rsi_upper,
                                 lowerband=self.p.rsi_lower)
 
-        self.crossdown = bt.ind.CrossDown(rsi, self.p.rsi_upper)
-        self.crossup = bt.ind.CrossUp(rsi, self.p.rsi_lower)
+        self.crossdown0 = bt.ind.CrossDown(rsi, self.p.rsi_upper)
+        self.crossup0 = bt.ind.CrossUp(rsi, self.p.rsi_lower)
+
+        sma1 = bt.ind.SMA(self.data1, period=self.p.pfast)
+        sma2 = bt.ind.SMA(self.data1, period=self.p.pslow)
+        self.crossover1 = bt.ind.CrossOver(sma1, sma2)
+
+        rsi = bt.indicators.RSI(period=self.p.rsi_per,
+                                upperband=self.p.rsi_upper,
+                                lowerband=self.p.rsi_lower)
+
+        self.crossdown1 = bt.ind.CrossDown(rsi, self.p.rsi_upper)
+        self.crossup1 = bt.ind.CrossUp(rsi, self.p.rsi_lower)
 
     def next(self):
-        # if fast crosses slow to the upside
-        if not self.positionsbyname["AAPL"].size:
-            if self.crossover > 0 or self.crossup > 0:
-                self.buy(data=data0, size=5)  # enter long
+        for i in range(self.num_data):
+            data = eval('self.data' + str(i))
+            # if fast crosses slow to the upside
+            if not self.positionsbyname[data.p.dataname].size:
+                if self.crossover0 > 0 or self.crossup0 > 0:
+                    self.buy(data=data, size=5)  # enter long
 
-        # in the market & cross to the downside
-        if self.positionsbyname["AAPL"].size:
-            if self.crossover <= 0 or self.crossdown < 0:
-                self.close(data=data0)  # close long position
+            # in the market & cross to the downside
+            if self.positionsbyname[data.p.dataname].size:
+                if self.crossover0 <= 0 or self.crossdown0 < 0:
+                    self.close(data=data)  # close long position
 
-
-def run(ALPACA_API_KEY,ALPACA_SECRET_KEY,ALPACA_PAPER):
+def run(ALPACA_API_KEY,ALPACA_SECRET_KEY,ALPACA_PAPER,symbols):
     cerebro = bt.Cerebro()
     cerebro.addstrategy(SmaCross1)
 
     store = alpaca_backtrader_api.AlpacaStore(
         key_id=ALPACA_API_KEY,
         secret_key=ALPACA_SECRET_KEY,
-        paper=True
+        paper=ALPACA_PAPER
     )
 
     DataFactory = store.getdata  # or use alpaca_backtrader_api.AlpacaData
-    if ALPACA_PAPER:
-        data0 = DataFactory(dataname='AAPL',
-                            historical=False,
-                            timeframe=bt.TimeFrame.Days)
-        # or just alpaca_backtrader_api.AlpacaBroker()
-        broker = store.getbroker()
-        cerebro.setbroker(broker)
-    else:
-        data0 = DataFactory(dataname='AAPL', historical=True, fromdate=datetime(
-            2015, 1, 1), timeframe=bt.TimeFrame.Days)
-    cerebro.adddata(data0)
+    
+    for s in symbols:
+        data = DataFactory(dataname=s, historical=True, fromdate=datetime(
+                            2015, 1, 1), timeframe=bt.TimeFrame.Days)
+        cerebro.adddata(data)
 
     if not ALPACA_PAPER:
         # backtrader broker set initial simulated cash
@@ -90,3 +102,4 @@ def run(ALPACA_API_KEY,ALPACA_SECRET_KEY,ALPACA_PAPER):
     cerebro.run()
     print('Final Portfolio Value: {}'.format(cerebro.broker.getvalue()))
     cerebro.plot()
+    
