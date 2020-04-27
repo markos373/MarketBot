@@ -21,46 +21,20 @@ class NewStrat(bt.Strategy):
 
     def __init__(self):
         # this checks how many datas is being put in
+        self.data = []
+
         for i in range(1000):
             dname = 'data' + str(i)
-            if not hasattr(self,dname):
-                self.num_data = i
-                break
-            
-        sma1 = bt.ind.SMA(self.data0, period=self.p.pfast)
-        sma2 = bt.ind.SMA(self.data0, period=self.p.pslow)
-        self.crossover0 = bt.ind.CrossOver(sma1, sma2)
-
-        rsi = bt.indicators.RSI(period=self.p.rsi_per,
-                                upperband=self.p.rsi_upper,
-                                lowerband=self.p.rsi_lower)
-
-        self.crossdown0 = bt.ind.CrossDown(rsi, self.p.rsi_upper)
-        self.crossup0 = bt.ind.CrossUp(rsi, self.p.rsi_lower)
-
-        sma1 = bt.ind.SMA(self.data1, period=self.p.pfast)
-        sma2 = bt.ind.SMA(self.data1, period=self.p.pslow)
-        self.crossover1 = bt.ind.CrossOver(sma1, sma2)
-
-        rsi = bt.indicators.RSI(period=self.p.rsi_per,
-                                upperband=self.p.rsi_upper,
-                                lowerband=self.p.rsi_lower)
-
-        self.crossdown1 = bt.ind.CrossDown(rsi, self.p.rsi_upper)
-        self.crossup1 = bt.ind.CrossUp(rsi, self.p.rsi_lower)
-
-    def next(self):
-        for i in range(self.num_data):
+            if not hasattr(self,dname): break
             data = eval('self.data' + str(i))
-            # if fast crosses slow to the upside
-            if not self.positionsbyname[data.p.dataname].size:
-                if self.crossover0 > 0 or self.crossup0 > 0:
-                    self.buy(data=data, size=5)  # enter long
-
-            # in the market & cross to the downside
-            if self.positionsbyname[data.p.dataname].size:
-                if self.crossover0 <= 0 or self.crossdown0 < 0:
-                    self.close(data=data)  # close long position
+            self.data.append(data)
+        roc = bt.ind.RateOfChange(self.data[0])
+        print()
+        quit()
+    def next(self):
+        for i in range(len(self.data)):
+            # do something
+            pass
 
 class SmaCross1(bt.Strategy):
     # list of parameters which are configurable for the strategy
@@ -75,7 +49,7 @@ class SmaCross1(bt.Strategy):
     )
 
     def log(self, txt, dt=None):
-        dt = dt or self.data[0].datetime[0]
+        dt = dt or self.data.datetime[0]
         dt = bt.num2date(dt)
         print('%s, %s' % (dt.isoformat(), txt))
 
@@ -98,13 +72,8 @@ class SmaCross1(bt.Strategy):
         self.crossover = []
         self.crossdown = []
         self.crossup = []
-        self.data = []
-
-        for i in range(1000):
-            dname = 'data' + str(i)
-            if not hasattr(self,dname): break
-            data = eval('self.data' + str(i))
-            self.data.append(data)
+    
+        for data in self.datas:            
             sma1 = bt.ind.SMA(data, period=self.p.pfast)
             sma2 = bt.ind.SMA(data, period=self.p.pslow)
             self.crossover.append(bt.ind.CrossOver(sma1, sma2))
@@ -117,16 +86,16 @@ class SmaCross1(bt.Strategy):
             self.crossup.append(bt.ind.CrossUp(rsi, self.p.rsi_lower))
 
     def next(self):
-        for i in range(len(self.data)):
+        for i in range(len(self.datas)):
             # if fast crosses slow to the upside
-            if not self.positionsbyname[self.data[i].p.dataname].size:
+            if not self.positionsbyname[self.datas[i].p.dataname].size:
                 if self.crossover[i] > 0 or self.crossup[i] > 0:
-                    self.buy(data=self.data[i], size=5)  # enter long
+                    self.buy(data=self.datas[i], size=5)  # enter long
 
             # in the market & cross to the downside
-            if self.positionsbyname[self.data[i].p.dataname].size:
+            if self.positionsbyname[self.datas[i].p.dataname].size:
                 if self.crossover[i] <= 0 or self.crossdown[i] < 0:
-                    self.close(data=self.data[i])  # close long position
+                    self.close(data=self.datas[i])  # close long position
 
 def run(ALPACA_API_KEY,ALPACA_SECRET_KEY,ALPACA_PAPER,symbols):
     cerebro = bt.Cerebro()
