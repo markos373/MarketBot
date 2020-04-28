@@ -3,16 +3,6 @@ import backtrader as bt
 from datetime import datetime
 
 class NewStrat(bt.Strategy):
-    params = dict(
-        pfast=10,  # period for the fast moving average
-        pslow=30,   # period for the slow moving average
-        rsi_per=14,
-        rsi_upper=65.0,
-        rsi_lower=35.0,
-        rsi_out=50.0,
-        warmup=35
-    )
-
     def stop(self):
         print('==================================================')
         print('Starting Value - %.2f' % self.broker.startingcash)
@@ -21,22 +11,18 @@ class NewStrat(bt.Strategy):
 
     def __init__(self):
         # this checks how many datas is being put in
-        self.data = []
-
-        for i in range(1000):
-            dname = 'data' + str(i)
-            if not hasattr(self,dname): break
-            data = eval('self.data' + str(i))
-            self.data.append(data)
-        roc = bt.ind.RateOfChange(self.data[0])
-        print()
-        quit()
-    def next(self):
-        for i in range(len(self.data)):
-            # do something
+        self.crossup = []
+    
+        for data in self.datas:
             pass
 
-class SmaCross1(bt.Strategy):
+    def next(self):
+        for i,data in enumerate(self.datas):
+            # Do soemthing
+            print
+            pass
+
+class SmaCrossMulti(bt.Strategy):
     # list of parameters which are configurable for the strategy
     params = dict(
         pfast=10,  # period for the fast moving average
@@ -48,25 +34,26 @@ class SmaCross1(bt.Strategy):
         warmup=35
     )
 
-    def log(self, txt, dt=None):
-        dt = dt or self.data.datetime[0]
-        dt = bt.num2date(dt)
-        print('%s, %s' % (dt.isoformat(), txt))
+    '''not really interested in this rn so commenting out'''
+    # def log(self, txt, dt=None):
+    #     dt = dt or self.data.datetime[0]
+    #     dt = bt.num2date(dt)
+    #     print('%s, %s' % (dt.isoformat(), txt))
 
-    def notify_trade(self, trade):
-        self.log("placing trade for {}. target size: {}".format(
-            trade.getdataname(),
-            trade.size))
+    # def notify_trade(self, trade):
+    #     self.log("placing trade for {}. target size: {}".format(
+    #         trade.getdataname(),
+    #         trade.size))
 
-    def notify_order(self, order):
-        pass
+    # def notify_order(self, order):
+    #     pass
 
     def stop(self):
         print('==================================================')
         print('Starting Value - %.2f' % self.broker.startingcash)
         print('Ending   Value - %.2f' % self.broker.getvalue())
         print('==================================================')
-
+        
     def __init__(self):
         # this checks how many datas is being put in
         self.crossover = []
@@ -86,16 +73,17 @@ class SmaCross1(bt.Strategy):
             self.crossup.append(bt.ind.CrossUp(rsi, self.p.rsi_lower))
 
     def next(self):
-        for i in range(len(self.datas)):
+        for i,data in enumerate(self.datas):
             # if fast crosses slow to the upside
-            if not self.positionsbyname[self.datas[i].p.dataname].size:
+            if not self.positionsbyname[data.p.dataname].size:
                 if self.crossover[i] > 0 or self.crossup[i] > 0:
-                    self.buy(data=self.datas[i], size=5)  # enter long
+                    self.buy(data=data, size=5)  # enter long
 
             # in the market & cross to the downside
-            if self.positionsbyname[self.datas[i].p.dataname].size:
+            if self.positionsbyname[data.p.dataname].size:
                 if self.crossover[i] <= 0 or self.crossdown[i] < 0:
-                    self.close(data=self.datas[i])  # close long position
+                    self.close(data=data)  # close long position
+
 
 def run(ALPACA_API_KEY,ALPACA_SECRET_KEY,ALPACA_PAPER,symbols):
     cerebro = bt.Cerebro()
@@ -108,10 +96,9 @@ def run(ALPACA_API_KEY,ALPACA_SECRET_KEY,ALPACA_PAPER,symbols):
     )
 
     DataFactory = store.getdata  # or use alpaca_backtrader_api.AlpacaData
-    
     for s in symbols:
         data = DataFactory(dataname=s, historical=True, fromdate=datetime(
-                            2020,4,1), timeframe=bt.TimeFrame.Minutes)
+                            2020,4,15), timeframe=bt.TimeFrame.Minutes)
         cerebro.adddata(data)
 
     if not ALPACA_PAPER:
