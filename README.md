@@ -38,3 +38,8 @@ show portfolio [day/week/month/year]
     Shows the graph for the equity portfolio of the account for the specified time period (ending on the current day)
     If not specified, it will default to week
 ```
+
+Here is an example of the bot in action:
+
+![Example MarketBot Image](https://i.imgur.com/PHIz4n5.png)
+
