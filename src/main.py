@@ -31,14 +31,13 @@ if __name__ == "__main__":
         print("settings file required!")
         sys.exit()
         
-    strats.backtest.run(key_id,secret_key,True,['AAPL','GOOG','AMZN'])
+    #strats.backtest.run(key_id,secret_key,True,['AAPL','GOOG','AMZN'])
     # strats.backtest.run(key_id,secret_key,True,['AAPL','MSFT'])
     
     #test.run()
-    #alpaca = AlpacaConnection(logger, key_id, secret_key)
-    #alpha = AlphaParser(AlphaAPIKey)
-    #bot = DiscordBot(discordToken, alpha, alpaca,logger,user_id)
-    #bot.run()
+    alpaca = AlpacaConnection(logger, key_id, secret_key)
+    bot = DiscordBot(discordToken, alpaca,logger,user_id)
+    bot.run()
     
     logging.shutdown()
 

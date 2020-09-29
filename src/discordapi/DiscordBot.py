@@ -1,7 +1,6 @@
 import discord
 from strats.longshort import LongShort
 from strats.indicatorstrat import IndicatorStrat
-from AlphaVantage.AlphaParser import AlphaParser
 from prettytable import PrettyTable
 import threading
 import asyncio
@@ -37,9 +36,8 @@ def create_pipe():
     return p1,p2
 
 class DiscordBot:
-    def __init__(self,token,alpha, alpaca, logger, user):
+    def __init__(self,token, alpaca, logger, user):
         self.client = discord.Client()
-        self.alpha = alpha
         self.alpaca = alpaca
         self.wlist = None
         self.userSettings = {}
@@ -49,8 +47,6 @@ class DiscordBot:
         self.user = None
         self.user_id = user
         self.logger = logger
-        # not sure if this is good practice to keep reusing this alpaca object
-        # but i will coz why not
         self.img_gen = imgGenerator(self.alpaca,self.logger)
 
         self.instance_kill = False        
@@ -86,20 +82,13 @@ class DiscordBot:
             else:
                 sender = message.author.name+'#'+message.author.discriminator
                 if sender != self.user_id:
-                    await message.author.send('you are not my boss!')
+                    await message.author.send('You are not my boss!')
                     return
                 elif not self.user:
-                    # we got the right user, so we now store the user object info here
                     self.user = message.author
                 self.logger.info("Discord: User input = [{}]".format(message.content))
-                # messages in dm
-                # this is where we parse user messages
                 if 'help' in input:
-                    if 'data' in input:
-                        msg = self.help('data')
-                    elif 'watchlist' in input:                
-                        msg = self.help('watchlist')
-                    elif 'longshort' in input:
+                    if 'longshort' in input:
                         msg = self.help('longshort')
                     elif 'show' in input:
                         msg = self.help('show')
@@ -107,43 +96,6 @@ class DiscordBot:
                         msg = self.help('positions')
                     else: 
                         msg = self.help('default')
-                elif 'data' in input:
-                    # for now we will just return SMA
-                    msg = self.getdata()
-                elif 'watchlist' in input:
-                    if 'create' in input:
-                        slist = ' '.join(input[input.index('create')+1:])  #joins string in list
-                        print('creating watchlist for ', slist)
-                        msg = self.createWatchlist(slist)
-                    elif 'view' in input:
-                        newname = ' '.join(input[input.index('view')+1:])
-                        if newname == 'all':
-                            msg = self.viewAllWatchlists()
-                        else:
-                            msg = self.viewWatchlist(newname)
-                        # msg = self.viewWatchlist()    
-                    elif 'delete' in input:
-                        dname = ' '.join(input[input.index('delete')+1:])
-                        msg = self.deleteWatchlist(dname)
-                    #add 1 symbol to watchlist
-                    elif 'add' in input:
-                        watchlistid = input[input.index('add')+1]
-                        print("watchlist: " + watchlistid)
-                        symbol = ' '.join(input[input.index(watchlistid)+1:])
-                        print("symbol: " + symbol)
-                        msg = self.addSymbol(watchlistid, symbol)
-                    elif 'remove' in input:
-                        watchlistid = input[input.index('remove')+1]
-                        print("watchlist: " + watchlistid)
-                        symbol = ' '.join(input[input.index(watchlistid)+1:])
-                        print("symbol: " + symbol)
-                        msg = self.removeSymbol(watchlistid, symbol)
-                    else:
-                        msg = 'requires additonal input!'
-                ### I dont think this is needed but I'm leaving it here just in case - Solomon 
-                        #i = input.index('add')
-                        #if not input[i+1]:
-                            #msg = 'please specify an input!'
                 elif 'longshort' in input:
                     if 'add' in input:
                         msg = 'adding {}'
@@ -244,7 +196,6 @@ class DiscordBot:
             while True:
                 if self.instance_kill:
                     self.instance.join()
-                    print("REALLY REALLY KILLED IT!!!")
                     self.instance = None
                     self.logger.info('Discord: Algo successfully terminated')
                     return 'Algorithm successfully terminated!'
@@ -282,27 +233,7 @@ class DiscordBot:
             helpmenu += '\t-longshort\n'
             helpmenu += '\t-show\n'
             helpmenu += '\t-positions\n'
-            helpmenu += '\t-watchlist\n'
-            helpmenu += '\t-data\n'
             helpmenu += 'For more help, enter: help [command]\n'
-        elif menu == 'data':
-            helpmenu = '**data** command options:\n'
-            helpmenu += '\t-**data** | info: shows latest 30 SMA values\n'
-            helpmenu += '\t\tenter: data\n' 
-        elif menu == 'watchlist':
-            helpmenu = '**watchlist** command options:\n'
-            helpmenu += '\t-**create** | info: creates watchlist\n'
-            helpmenu += '\t\tenter: watchlist create [watchlist]\n\n'
-            helpmenu += '\t-**delete** | info: deletes specified watchlist\n'  
-            helpmenu += '\t\tenter: watchlist delete [watchlist]\n\n'  
-            helpmenu += '\t-**view** | info: returns specified watchlist\n'
-            helpmenu += '\t\tenter: watchlist view [watchlist]\n\n'
-            helpmenu += '\t-**view all** | info: returns all watchlists\n'  
-            helpmenu += '\t\tenter: watchlist view all\n\n'   
-            helpmenu += '\t-**add** | info: adds specified symbol to specified watchlist\n'  
-            helpmenu += '\t\tenter: watchlist add [watchlist] [symbol]\n\n'  
-            helpmenu += '\t-**remove** | info: removes specified symbol from specified watchlist\n'  
-            helpmenu += '\t\tenter: watchlist remove [watchlist] [symbol]\n\n'   
         elif menu == 'longshort':
             helpmenu = '**longshort** command options:\n'
             helpmenu += '\t-**add** | info: add symbol to longshort (multiple symbols allowed, separate with \',\')\n'
@@ -326,7 +257,7 @@ class DiscordBot:
             helpmenu += '\t-**positions** | info: displays positions table\n'
             helpmenu += '\t\tenter: positions\n\n'
         else:
-            print("no menu option stated\n")
+            print("No menu option stated\n")
         return helpmenu
 
     # p2 is the pipe for the algo instance to talk through
@@ -351,46 +282,6 @@ class DiscordBot:
 
     def respondMention(self):
         return 'type --help in my dm for more info!\n'
-
-    def getdata(self):
-        d = self.alpha.getSMAvalue()
-        l = self.alpha.tprint(d)
-        return l
-
-    def createWatchlist(self, watchlist):
-        try:
-            self.alpaca.createWatchlist(watchlist)
-        except:
-            print('something messed up')
-        return "Watchlist successfully created!"
-    
-    def deleteWatchlist(self,watchlist):
-        self.alpaca.deleteWatchlist(watchlist)
-        return "success!"
-
-    def viewAllWatchlists(self):
-        nameslist = self.alpaca.getAllWatchlists()
-        return ', '.join(nameslist)
-
-    def viewWatchlist(self,name):
-        if name not in self.alpaca.watchlists.keys():
-            return 'Please provide a valid watchlist name!'
-        wlist = self.alpaca.viewWatchlist(name)
-        returnstring = ''
-        for k,v in wlist.items():
-            if k == 'id' or k == 'account_id':
-                continue
-            if k == 'assets':
-                returnstring += k + ':\n'
-                for item in v:
-                    for k,v in item.items():
-                        if k == 'id':
-                            continue
-                        returnstring += '\t' + k + ': ' + str(v) + '\n'
-                    returnstring += '\t----------------------\n'
-            returnstring += k + ': ' + str(v) + '\n'
-
-        return returnstring
 
     def addSymbol(self,name,ticker):
         try: 

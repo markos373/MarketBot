@@ -2,3 +2,4 @@ alpaca_trade_api
 discord
 prettytable
 matplotlib
+alpaca_backtrader_api

@@ -1,0 +1,34 @@
+[2020-09-29 15:41:00,394] INFO: Discord: Bot initiated
+[2020-09-29 15:41:00,395] INFO: logging in using static token
+[2020-09-29 15:41:00,679] INFO: Shard ID None has sent the IDENTIFY payload.
+[2020-09-29 15:41:00,807] INFO: Shard ID None has connected to Gateway: ["gateway-prd-main-v1tb",{"micros":99286,"calls":["discord-sessions-prd-2-4",{"micros":86466,"calls":["start_session",{"micros":51346,"calls":["api-prd-main-mqrf",{"micros":47130,"calls":["get_user",{"micros":7967},"add_authorized_ip",{"micros":1861},"get_guilds",{"micros":6165},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":2,"calls":[]},"presence_connect",{"micros":20675,"calls":[]}]}]}] (Session ID: 28627c47b12381cd7e6a107bcabd159d).
+[2020-09-29 15:41:20,809] INFO: Discord: User input = [show]
+[2020-09-29 15:41:21,739] INFO: Discord: User input = [hlep]
+[2020-09-29 15:41:23,578] INFO: Discord: User input = [help]
+[2020-09-29 15:41:29,497] INFO: Discord: User input = [!ticker]
+[2020-09-29 15:41:32,412] INFO: Discord: User input = [!ticker AA]
+[2020-09-29 15:41:57,163] INFO: Discord: User input = [show]
+[2020-09-29 15:41:59,517] INFO: Discord: User input = [show positions]
+[2020-09-29 15:41:59,517] INFO: ChartGenerator: Starting to prepare positions chart
+[2020-09-29 15:41:59,872] INFO: ChartGenerator: Created img/long_positions.png for output
+[2020-09-29 15:41:59,876] INFO: ChartGenerator: Preparing image file img/long_positions.png to send through discord
+[2020-09-29 15:42:00,030] INFO: ChartGenerator: Created img/short_positions.png for output
+[2020-09-29 15:42:00,036] INFO: ChartGenerator: Preparing image file img/short_positions.png to send through discord
+[2020-09-29 15:42:07,306] INFO: Discord: User input = [show]
+[2020-09-29 15:42:20,924] INFO: Discord: User input = [help]
+[2020-09-29 15:42:46,619] INFO: Discord: User input = [help positions]
+[2020-09-29 15:42:49,628] INFO: Discord: User input = [positions enter]
+[2020-09-29 15:42:51,372] INFO: Discord: User input = [positions]
+[2020-09-29 15:42:52,294] INFO: Discord: User input = [help]
+[2020-09-29 15:42:54,263] INFO: Discord: User input = [show]
+[2020-09-29 15:43:05,591] INFO: Discord: User input = [help show]
+[2020-09-29 15:43:08,498] INFO: Discord: User input = [show performance]
+[2020-09-29 15:43:08,498] INFO: ChartGenerator: Starting to prepare portfolio graph
+[2020-09-29 15:43:08,499] INFO: Alpaca: making get request to https://paper-api.alpaca.markets/v2/account/portfolio/history
+[2020-09-29 15:43:08,932] INFO: ChartGenerator: Created img/portfolio_week.png for output
+[2020-09-29 15:43:08,933] INFO: ChartGenerator: Preparing image file img/portfolio_week.png to send through discord
+[2020-09-29 15:45:27,744] INFO: Discord: User input = [help]
+[2020-09-29 15:47:29,331] INFO: Cleaning up tasks.
+[2020-09-29 15:47:29,331] INFO: Cleaning up after 2 tasks.
+[2020-09-29 15:47:29,345] INFO: All tasks finished cancelling.
+[2020-09-29 15:47:29,345] INFO: Closing the event loop.
