@@ -32,7 +32,7 @@ if __name__ == "__main__":
         sys.exit()
         
     #strats.backtest.run(key_id,secret_key,True,['AAPL','GOOG','AMZN'])
-    # strats.backtest.run(key_id,secret_key,True,['AAPL','MSFT'])
+    #strats.backtest.run(key_id,secret_key,True,['AAPL','MSFT'])
     
     #test.run()
     alpaca = AlpacaConnection(logger, key_id, secret_key)

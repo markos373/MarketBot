@@ -6,6 +6,7 @@ import threading
 import asyncio
 import multiprocessing as mp
 from chartgen.imgGenerator import imgGenerator
+from discordapi.BotFunctions import BotFunctions
 
 # piping protocol: calling recv on an empty pipe will cause the program to indefinitely hang
 # to get around this, we use two threading.Event() with it as a triple.
@@ -73,12 +74,7 @@ class DiscordBot:
             msg = ''
             input = message.content.split()
             if not isinstance(message.channel,discord.DMChannel):
-            # messages in server
-                print("Server message:")
-                if '672484881208442894' in message.content:
-                    # bot is mentioned
-                    print("I have been summoned")
-                    msg += self.respondMention()
+                pass
             else:
                 sender = message.author.name+'#'+message.author.discriminator
                 if sender != self.user_id:
@@ -98,27 +94,9 @@ class DiscordBot:
                         msg = self.help('default')
                 elif 'longshort' in input:
                     if 'add' in input:
-                        msg = 'adding {}'
-                        if ',' in input[input.index('add')+1]:
-                            addlist = set(input[input.index('add')+1].split(","))
-                            msg = msg.format(list(addlist))
-                            self.StockUniverse.update(addlist)
-                        else:
-                            addlist = str(input[input.index('add')+1])
-                            msg = msg.format(addlist)
-                            self.StockUniverse.add(addlist)
-                        
+                        msg = BotFunctions.LongShort_Add(self.StockUniverse,input)
                     elif 'remove' in input:
-                        msg = 'removing {}'
-                        if ',' in input[input.index('remove')+1]:
-                            rmlist = set(input[input.index('remove')+1].split(","))
-                            msg = msg.format(list(rmlist))
-                            for thing in rmlist:
-                                self.StockUniverse.discard(thing)
-                        else:
-                            rmlist = str(input[input.index('remove')+1])
-                            msg = msg.format(rmlist)
-                            self.StockUniverse.remove(rmlist)                      
+                        msg = BotFunctions.LongShort_Remove(self.StockUniverse,input)
                     elif 'run' in input:
                         msg = self.start_instance(p2,"longshort")
                     elif 'kill' in input:
