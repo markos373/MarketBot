@@ -1,4 +1,4 @@
 settings.json
 *.pyc
-*.log
+src/*.log
 *.png
