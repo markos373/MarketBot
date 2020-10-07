@@ -1,4 +1,34 @@
+import multiprocessing as mp
 
+# Pipe class for talking to process
+
+# piping protocol: calling recv on an empty pipe will cause the program to indefinitely hang
+# to get around this, we use two threading.Event() with it as a triple.
+# Each process will raise the event flag when sending data, and the receiveing end should reset it
+
+class Pipe:
+    def __init__(self,q1,q2):
+        self.receiver = q1
+        self.sender = q2
+    
+    # calling this function will not reset the flag. only the actual reading does
+    def has_data(self):
+        return not self.receiver.empty()
+    
+    def read(self):
+        return self.receiver.get()
+
+    def send(self,data):
+        self.sender.put(data)
+
+def create_pipe():
+    q1 = mp.Queue()
+    q2 = mp.Queue()
+
+    p1 = Pipe(q1,q2)
+    p2 = Pipe(q2,q1)
+
+    return p1,p2
 
 class BotFunctions:
     def __init__():
