@@ -60,15 +60,6 @@ class DiscordBot:
                 
                 msg = parse(input)
 
-                # if 'help' in input:
-                #     if 'longshort' in input:
-                #         msg = help('longshort')
-                #     elif 'show' in input:
-                #         msg = help('show')
-                #     elif 'positions' in input:
-                #         msg = help('positions')
-                #     else: 
-                #         msg = help('default')
                 # elif 'longshort' in input:
                 #     if 'add' in input:
                 #         msg = BotFunctions.LongShort_Add(self.StockUniverse,input)

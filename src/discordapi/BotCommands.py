@@ -1,3 +1,5 @@
+import BotFunctions as bf
+
 # structure of the bot command
 # [Action] [Field1] [Field2]..
 
@@ -38,9 +40,25 @@ def help(input):
     assert(menu in help_menus.keys())
     return help_menus[menu]
 
+longshort_menus = {
+    'default':
+'''longshort [add/remove] TICKER,TICKER
+    ex: longshort add AAPL,MMM''',
+    'add': bf.Longshort_Add(),
+    'remove': bf.Longshort_Remove(),
+    # 'run':
+    # 'kill':
+    # 'view':
+}
+
+def longshort(input):
+    menu = 'default'
+    if not len(input) ==  0: menu = input.pop(0)
+    return 
+
 commands = {
     'help': help,
-    # 'longshort': longshort()
+    'longshort': longshort
     # 'show'
     # 'positions'
 }
