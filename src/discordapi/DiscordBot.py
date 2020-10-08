@@ -1,7 +1,6 @@
 import discord
 from strats.longshort import LongShort
 from strats.indicatorstrat import IndicatorStrat
-from prettytable import PrettyTable
 import threading
 import asyncio
 import multiprocessing as mp
@@ -76,7 +75,7 @@ class DiscordBot:
             if not isinstance(message.channel,discord.DMChannel):
                 pass
             else:
-                sender = message.author.name+'#'+message.author.discriminator
+                sender = "{}#{}".format(message.author.name,message.author.discriminator)
                 if sender != self.user_id:
                     await message.author.send('You are not my boss!')
                     return
@@ -85,31 +84,30 @@ class DiscordBot:
                 self.logger.info("Discord: User input = [{}]".format(message.content))
                 if 'help' in input:
                     if 'longshort' in input:
-                        msg = self.help('longshort')
+                        msg = BotFunctions.Help('longshort')
                     elif 'show' in input:
-                        msg = self.help('show')
+                        msg = BotFunctions.Help('show')
                     elif 'positions' in input:
-                        msg = self.help('positions')
+                        msg = BotFunctions.Help('positions')
                     else: 
-                        msg = self.help('default')
+                        msg = BotFunctions.Help('default')
                 elif 'longshort' in input:
                     if 'add' in input:
                         msg = BotFunctions.LongShort_Add(self.StockUniverse,input)
                     elif 'remove' in input:
                         msg = BotFunctions.LongShort_Remove(self.StockUniverse,input)
                     elif 'run' in input:
-                        msg = self.start_instance(p2,"longshort")
+                        msg = BotFunctions.LongShort_Run(self,p2)
                     elif 'kill' in input:
                         msg = await self.kill_instance()
                     elif 'view' in input:
-                        msg = "Stock Universe: {}".format(list(self.StockUniverse))
+                        msg = BotFunctions.LongShort_View(self.StockUniverse)
                     else:
-                        msg = """longshort [add/remove] TICKER,TICKER\n     ex: longshort add AAPL,MMM"""
+                        msg = BotFunctions.Help('longshort')
                 elif 'show' in input:
                     picture = False
                     if 'goose' in input:
-                        goosepicture = 'img/madgoose.png'
-                        picture = discord.File(goosepicture)
+                        picture = discord.File(BotFunctions.Show_Goose())
                     elif 'positions' in input:
                         picture = self.img_gen.positions_chart()
                         if len(picture) > 1: 
@@ -120,48 +118,15 @@ class DiscordBot:
                         if len(input) > input.index('performance')+1:
                             timeperiod = input[input.index('performance')+1]
                         picture = self.img_gen.portfolio_graph(timeperiod)
-                    if picture and picture != 'invalid': await message.channel.send(file = picture)
-                    elif picture == 'invalid': msg = 'No positions to display!'
-                    else: msg = '''show [positions/performance] \n      ex: show performance [day/week/month]'''
+                    if picture and picture != 'invalid': 
+                        await message.channel.send(file = picture)
+                    elif picture == 'invalid': 
+                        msg = 'No positions to display!'
+                    else: 
+                        msg = '''show [positions/performance] \n      
+                        ex: show performance [day/week/month]'''
                 elif 'positions' in input:
-                    positions = self.alpaca.listPositions()
-                    headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
-                    table = PrettyTable(headers)
-                    for position in positions:
-                        table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
-                    msg = '```'+table.get_string()+'```'
-                    print(table)
-                elif 'istrat' in input:
-                    if 'add' in input:
-                        msg = 'adding {}'
-                        if ',' in input[input.index('add')+1]:
-                            addlist = set(input[input.index('add')+1].split(","))
-                            msg = msg.format(list(addlist))
-                            self.StockUniverse.update(addlist)
-                        else:
-                            addlist = str(input[input.index('add')+1])
-                            msg = msg.format(addlist)
-                            self.StockUniverse.add(addlist)
-                        
-                    elif 'remove' in input:
-                        msg = 'removing {}'
-                        if ',' in input[input.index('remove')+1]:
-                            rmlist = set(input[input.index('remove')+1].split(","))
-                            msg = msg.format(list(rmlist))
-                            for thing in rmlist:
-                                self.StockUniverse.discard(thing)
-                        else:
-                            rmlist = str(input[input.index('remove')+1])
-                            msg = msg.format(rmlist)
-                            self.StockUniverse.remove(rmlist)                      
-                    elif 'run' in input:
-                        msg = self.start_instance(p2,"indicator")
-                    elif 'kill' in input:
-                        msg = await self.kill_instance()
-                    elif 'view' in input:
-                        msg = "Stock Universe: {}".format(list(self.StockUniverse))
-                    else:
-                        msg = """indicatorstrat [add/remove] TICKER,TICKER\n        ex: indicatorstrat add AAPL,MMM"""
+                    msg = BotFunctions.Show_Positions(self)
                 else:
                     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
@@ -204,39 +169,6 @@ class DiscordBot:
     def run(self):
         self.client.loop.create_task(self.listener())
         self.client.run(self.token)        
-
-    def help(self, menu):
-        if menu == 'default':
-            helpmenu = 'Command options:\n'
-            helpmenu += '\t-longshort\n'
-            helpmenu += '\t-show\n'
-            helpmenu += '\t-positions\n'
-            helpmenu += 'For more help, enter: help [command]\n'
-        elif menu == 'longshort':
-            helpmenu = '**longshort** command options:\n'
-            helpmenu += '\t-**add** | info: add symbol to longshort (multiple symbols allowed, separate with \',\')\n'
-            helpmenu += '\t\tenter: longshort add [symbol]\n\n'                       
-            helpmenu += '\t-**remove** | info: remove symbol from longshort (multiple symbols allowed, separate with \',\')\n'
-            helpmenu += '\t\tenter: longshort remove [symbol]\n\n'
-            helpmenu += '\t-**run** | info: start longshort\n'
-            helpmenu += '\t\tenter: longshort run\n\n'
-            helpmenu += '\t-**kill** | info: terminate longshort\n'
-            helpmenu += '\t\tenter: longshort kill\n\n'
-            helpmenu += '\t-**view** | info: view all symbols in longshort\n'
-            helpmenu += '\t\tenter: longshort view\n\n'   
-        elif menu == 'show':
-            helpmenu = '**show** command options:\n'
-            helpmenu += '\t-**positions** | info: displays positions chart\n'
-            helpmenu += '\t\tenter: show positions\n\n'
-            helpmenu += '\t-**performance** | info: displays past week performance graph\n'
-            helpmenu += '\t\tenter: show performance\n\n'
-        elif menu == 'positions':
-            helpmenu = '**positions** command options:\n'
-            helpmenu += '\t-**positions** | info: displays positions table\n'
-            helpmenu += '\t\tenter: positions\n\n'
-        else:
-            print("No menu option stated\n")
-        return helpmenu
 
     # p2 is the pipe for the algo instance to talk through
     def start_instance(self,pipe,algo):
