@@ -31,10 +31,10 @@ def create_pipe():
     return p1,p2
 
 class BotFunctions:
-    def __init__():
+    def __init__(self):
         pass
     
-    def LongShort_Add(StockUniverse,input):
+    def LongShort_Add(self,StockUniverse,input):
         #Add Typecheck
         msg = 'Adding {}'
         if ',' in input[input.index('add')+1]:
@@ -47,7 +47,7 @@ class BotFunctions:
             StockUniverse.add(addlist)
         return msg
 
-    def LongShort_Remove(StockUniverse,input):
+    def LongShort_Remove(self,StockUniverse,input):
         #Add Typecheck
         msg = 'Removing {}'
         if ',' in input[input.index('remove')+1]:
@@ -60,3 +60,5 @@ class BotFunctions:
             msg = msg.format(rmlist)
             StockUniverse.remove(rmlist)      
         return msg
+
+    # def LongShort_Run()

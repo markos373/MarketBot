@@ -4,3 +4,4 @@ launch.json
 src/*.log
 *.png
 *.log
+*.cpython*

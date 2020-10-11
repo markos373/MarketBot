@@ -8,6 +8,9 @@ from chartgen.imgGenerator import imgGenerator
 from discordapi.BotFunctions import BotFunctions,Pipe,create_pipe
 from discordapi.BotCommands import parse
 
+def is_async(func):
+    return asyncio.iscoroutinefunction(func)
+
 class DiscordBot:
     def __init__(self,token, alpaca, logger, user):
         self.client = discord.Client()
@@ -31,6 +34,7 @@ class DiscordBot:
     #=============================================
         self.algo = None
         self.algopipe = p1
+        self.listen_pipe = p2
         
         self.logger.info('Discord: Bot initiated')
 
@@ -58,21 +62,13 @@ class DiscordBot:
                     self.user = message.author
                 self.logger.info("Discord: User input = [{}]".format(message.content))
                 
-                msg = parse(input)
-
-                # elif 'longshort' in input:
-                #     if 'add' in input:
-                #         msg = BotFunctions.LongShort_Add(self.StockUniverse,input)
-                #     elif 'remove' in input:
-                #         msg = BotFunctions.LongShort_Remove(self.StockUniverse,input)
-                #     elif 'run' in input:
-                #         msg = self.start_instance(p2,"longshort")
-                #     elif 'kill' in input:
-                #         msg = await self.kill_instance()
-                #     elif 'view' in input:
-                #         msg = "Stock Universe: {}".format(list(self.StockUniverse))
-                #     else:
-                #         msg = """longshort [add/remove] TICKER,TICKER\n     ex: longshort add AAPL,MMM"""
+                operation,arguments = parse(input,self)
+                # if no operation, the operation variable contains the string
+                if type(operation) is type('string'):
+                    msg = operation
+                else:
+                    await operation(*arguments)
+                    
                 # elif 'show' in input:
                 #     picture = False
                 #     if 'goose' in input:
@@ -174,7 +170,8 @@ class DiscordBot:
         self.client.run(self.token)        
 
     # p2 is the pipe for the algo instance to talk through
-    def start_instance(self,pipe,algo):
+    def start_instance(self,algo):
+        pipe = self.listen_pipe
         self.logger.info('Discord: Received user input for algo start')
         msg = ''
         if self.instance is None:

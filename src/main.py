@@ -10,7 +10,7 @@ import sys
 import requests
 import threading
 
-CONFIGURATION_FILE_PATH = "../settings.json"
+CONFIGURATION_FILE_PATH = "settings.json"
 
 if __name__ == "__main__":
     logging.basicConfig(filename="python.log", filemode="w", format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO)
