@@ -1,4 +1,5 @@
 import multiprocessing as mp
+from prettytable import PrettyTable
 
 # Pipe class for talking to process
 
@@ -61,4 +62,23 @@ class BotFunctions:
             StockUniverse.remove(rmlist)      
         return msg
 
-    # def LongShort_Run()
+    def LongShort_Run(self, pipe):
+        msg = self.start_instance(pipe,"longshort")
+        return msg
+
+    def LongShort_View(StockUniverse):
+        msg = "Stock Universe: {}".format(list(StockUniverse))
+        return msg
+    
+    def Show_Goose():
+        goosepicture = 'img/madgoose.png'
+        return goosepicture
+    
+    def Show_Positions(self):
+        positions = self.alpaca.listPositions()
+        headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
+        table = PrettyTable(headers)
+        for position in positions:
+            table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
+        msg = '```'+table.get_string()+'```'
+        return msg

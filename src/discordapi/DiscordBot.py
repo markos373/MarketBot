@@ -1,7 +1,6 @@
 import discord
 from strats.longshort import LongShort
 from strats.indicatorstrat import IndicatorStrat
-from prettytable import PrettyTable
 import threading
 import asyncio
 from chartgen.imgGenerator import imgGenerator
@@ -53,7 +52,7 @@ class DiscordBot:
                 # skip if it is not dm
                 pass
             else:
-                sender = message.author.name+'#'+message.author.discriminator
+                sender = "{}#{}".format(message.author.name,message.author.discriminator)
                 if sender != self.user_id:
                     # if not the registered user
                     await message.author.send('You are not my boss!')
@@ -61,7 +60,6 @@ class DiscordBot:
                 elif not self.user:
                     self.user = message.author
                 self.logger.info("Discord: User input = [{}]".format(message.content))
-                
                 operation,arguments = parse(input,self)
                 # if no operation, the operation variable contains the string
                 if type(operation) is type('string'):
