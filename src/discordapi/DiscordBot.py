@@ -3,37 +3,12 @@ from strats.longshort import LongShort
 from strats.indicatorstrat import IndicatorStrat
 import threading
 import asyncio
-import multiprocessing as mp
 from chartgen.imgGenerator import imgGenerator
-from discordapi.BotFunctions import BotFunctions
+from discordapi.BotFunctions import BotFunctions,Pipe,create_pipe
+from discordapi.BotCommands import parse
 
-# piping protocol: calling recv on an empty pipe will cause the program to indefinitely hang
-# to get around this, we use two threading.Event() with it as a triple.
-# Each process will raise the event flag when sending data, and the receiveing end should reset it
-
-class Pipe:
-    def __init__(self,q1,q2):
-        self.receiver = q1
-        self.sender = q2
-    
-    # calling this function will not reset the flag. only the actual reading does
-    def has_data(self):
-        return not self.receiver.empty()
-    
-    def read(self):
-        return self.receiver.get()
-
-    def send(self,data):
-        self.sender.put(data)
-
-def create_pipe():
-    q1 = mp.Queue()
-    q2 = mp.Queue()
-
-    p1 = Pipe(q1,q2)
-    p2 = Pipe(q2,q1)
-
-    return p1,p2
+def is_async(func):
+    return asyncio.iscoroutinefunction(func)
 
 class DiscordBot:
     def __init__(self,token, alpaca, logger, user):
@@ -58,6 +33,7 @@ class DiscordBot:
     #=============================================
         self.algo = None
         self.algopipe = p1
+        self.listen_pipe = p2
         
         self.logger.info('Discord: Bot initiated')
 
@@ -73,62 +49,83 @@ class DiscordBot:
             msg = ''
             input = message.content.split()
             if not isinstance(message.channel,discord.DMChannel):
+                # skip if it is not dm
                 pass
             else:
                 sender = "{}#{}".format(message.author.name,message.author.discriminator)
                 if sender != self.user_id:
+                    # if not the registered user
                     await message.author.send('You are not my boss!')
                     return
                 elif not self.user:
                     self.user = message.author
                 self.logger.info("Discord: User input = [{}]".format(message.content))
-                if 'help' in input:
-                    if 'longshort' in input:
-                        msg = BotFunctions.Help('longshort')
-                    elif 'show' in input:
-                        msg = BotFunctions.Help('show')
-                    elif 'positions' in input:
-                        msg = BotFunctions.Help('positions')
-                    else: 
-                        msg = BotFunctions.Help('default')
-                elif 'longshort' in input:
-                    if 'add' in input:
-                        msg = BotFunctions.LongShort_Add(self.StockUniverse,input)
-                    elif 'remove' in input:
-                        msg = BotFunctions.LongShort_Remove(self.StockUniverse,input)
-                    elif 'run' in input:
-                        msg = BotFunctions.LongShort_Run(self,p2)
-                    elif 'kill' in input:
-                        msg = await self.kill_instance()
-                    elif 'view' in input:
-                        msg = BotFunctions.LongShort_View(self.StockUniverse)
-                    else:
-                        msg = BotFunctions.Help('longshort')
-                elif 'show' in input:
-                    picture = False
-                    if 'goose' in input:
-                        picture = discord.File(BotFunctions.Show_Goose())
-                    elif 'positions' in input:
-                        picture = self.img_gen.positions_chart()
-                        if len(picture) > 1: 
-                            await message.channel.send(file=picture[0])
-                            picture = picture[1]
-                    elif 'performance' in input:
-                        timeperiod = 'week'
-                        if len(input) > input.index('performance')+1:
-                            timeperiod = input[input.index('performance')+1]
-                        picture = self.img_gen.portfolio_graph(timeperiod)
-                    if picture and picture != 'invalid': 
-                        await message.channel.send(file = picture)
-                    elif picture == 'invalid': 
-                        msg = 'No positions to display!'
-                    else: 
-                        msg = '''show [positions/performance] \n      
-                        ex: show performance [day/week/month]'''
-                elif 'positions' in input:
-                    msg = BotFunctions.Show_Positions(self)
+                operation,arguments = parse(input,self)
+                # if no operation, the operation variable contains the string
+                if type(operation) is type('string'):
+                    msg = operation
                 else:
-                    msg = 'how can I help? (type \'help\' to see options)'
+                    await operation(*arguments)
+                    
+                # elif 'show' in input:
+                #     picture = False
+                #     if 'goose' in input:
+                #         goosepicture = 'img/madgoose.png'
+                #         picture = discord.File(goosepicture)
+                #     elif 'positions' in input:
+                #         picture = self.img_gen.positions_chart()
+                #         if len(picture) > 1: 
+                #             await message.channel.send(file=picture[0])
+                #             picture = picture[1]
+                #     elif 'performance' in input:
+                #         timeperiod = 'week'
+                #         if len(input) > input.index('performance')+1:
+                #             timeperiod = input[input.index('performance')+1]
+                #         picture = self.img_gen.portfolio_graph(timeperiod)
+                #     if picture and picture != 'invalid': await message.channel.send(file = picture)
+                #     elif picture == 'invalid': msg = 'No positions to display!'
+                #     else: msg = '''show [positions/performance] \n      ex: show performance [day/week/month]'''
+                # elif 'positions' in input:
+                #     positions = self.alpaca.listPositions()
+                #     headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
+                #     table = PrettyTable(headers)
+                #     for position in positions:
+                #         table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
+                #     msg = '```'+table.get_string()+'```'
+                #     print(table)
+                # elif 'istrat' in input:
+                #     if 'add' in input:
+                #         msg = 'adding {}'
+                #         if ',' in input[input.index('add')+1]:
+                #             addlist = set(input[input.index('add')+1].split(","))
+                #             msg = msg.format(list(addlist))
+                #             self.StockUniverse.update(addlist)
+                #         else:
+                #             addlist = str(input[input.index('add')+1])
+                #             msg = msg.format(addlist)
+                #             self.StockUniverse.add(addlist)
+                        
+                #     elif 'remove' in input:
+                #         msg = 'removing {}'
+                #         if ',' in input[input.index('remove')+1]:
+                #             rmlist = set(input[input.index('remove')+1].split(","))
+                #             msg = msg.format(list(rmlist))
+                #             for thing in rmlist:
+                #                 self.StockUniverse.discard(thing)
+                #         else:
+                #             rmlist = str(input[input.index('remove')+1])
+                #             msg = msg.format(rmlist)
+                #             self.StockUniverse.remove(rmlist)                      
+                #     elif 'run' in input:
+                #         msg = self.start_instance(p2,"indicator")
+                #     elif 'kill' in input:
+                #         msg = await self.kill_instance()
+                #     elif 'view' in input:
+                #         msg = "Stock Universe: {}".format(list(self.StockUniverse))
+                #     else:
+                #         msg = """indicatorstrat [add/remove] TICKER,TICKER\n        ex: indicatorstrat add AAPL,MMM"""
+                # else:
+                #     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
                 await message.channel.send(msg)
 
@@ -171,7 +168,8 @@ class DiscordBot:
         self.client.run(self.token)        
 
     # p2 is the pipe for the algo instance to talk through
-    def start_instance(self,pipe,algo):
+    def start_instance(self,algo):
+        pipe = self.listen_pipe
         self.logger.info('Discord: Received user input for algo start')
         msg = ''
         if self.instance is None:
