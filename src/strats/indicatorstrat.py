@@ -46,6 +46,18 @@ class IndicatorStrat(BaseStrat):
     else:
       return True
 
+  def submitOrder(self, qty, stock, side, resp):
+    if(qty > 0):
+      try:
+        self.alpaca.submit_order(stock, qty, side, "market", "day")
+        self.m_queue.add_msg("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
+        resp.append(True)
+      except:
+        self.m_queue.add_msg("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
+        resp.append(False)
+    else:
+      self.m_queue.add_msg("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
+      resp.append(True)
 
   def run(self):
     # First, cancel any existing orders so they don't impact our buying power.
@@ -61,14 +73,31 @@ class IndicatorStrat(BaseStrat):
 
     # the waiting thread may be killed while the market is open, so check flag
     if not self.stop:
-      self.m_queue.add_msg("Market opened.")
+      self.m_queue.add_msg("Market opened.")  def submitOrder(self, qty, stock, side, resp):
+    if(qty > 0):
+      try:
+        self.alpaca.submit_order(stock, qty, side, "market", "day")
+        self.m_queue.add_msg("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
+        resp.append(True)
+      except:
+        self.m_queue.add_msg("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
+        resp.append(False)
+    else:
+      self.m_queue.add_msg("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
+      resp.append(True)
     '''
     data = parse_csv(UNDERVALUED_DATA)
-    print(data)
-    #self.get_action("GE")
-    
+    top_ten = []
+    for i in range(1,11):
+      top_ten.append(data[i][0])
+
+    orders = calc_allocations(top_ten)
+
+    execute_trades(orders)
+    print(self.get_buying_power().buying_power)
+    #get allocations, get buying power, calculate budget per stock, calculate units per stock, execute trade
     return
-    # max_positions = 5
+    #
     # pos_alloc = 1.0 / max_positions
 
     # while not self.stop:
@@ -78,6 +107,8 @@ class IndicatorStrat(BaseStrat):
     #         else:
     #             #sell
             
+  def get_buying_power(self):
+    return self.alpaca.get_account()
 
 def get_most_recent(data,indicator):
   '''
@@ -91,6 +122,19 @@ def get_most_recent(data,indicator):
     break
   return recent[indicator]
 
+def calc_allocations(tickers):
+  max_alloc = 1.0 // len(tickers)
+  orders = []
+  for ticker in tickers:
+    orders.append((ticker,max_alloc))
+  return orders
+  
+
+def execute_trades(orders):
+
+  for order in orders:
+    print(order)  
+
 def parse_csv(fp):
   data = []
   with open(fp) as csvfile:
@@ -99,3 +143,4 @@ def parse_csv(fp):
       data.append((row[0],row[1]))
   
   return data
+
