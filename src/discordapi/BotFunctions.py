@@ -35,7 +35,7 @@ class BotFunctions:
     def __init__(self):
         pass
     
-    def LongShort_Add(self,StockUniverse,input):
+    def LongShort_Add(StockUniverse,input):
         #Add Typecheck
         msg = 'Adding {}'
         if ',' in input[input.index('add')+1]:
