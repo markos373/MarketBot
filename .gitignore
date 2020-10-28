@@ -3,5 +3,6 @@ launch.json
 *.pyc
 src/*.log
 *.png
+/env/
 *.log
 *.cpython*
