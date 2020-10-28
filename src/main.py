@@ -3,6 +3,7 @@ from alpaca.AlpacaConnection import AlpacaConnection
 from AlphaVantage.AlphaParser import AlphaParser
 from discordapi.DiscordBot import DiscordBot
 from strats.longshort import LongShort
+import strats.indicatorstrat
 import strats.backtest
 import json
 import logging
@@ -10,7 +11,7 @@ import sys
 import requests
 import threading
 
-CONFIGURATION_FILE_PATH = "../settings.json"
+CONFIGURATION_FILE_PATH = "settings.json"
 
 if __name__ == "__main__":
     logging.basicConfig(filename="python.log", filemode="w", format="[%(asctime)s] %(levelname)s: %(message)s", level=logging.INFO)
@@ -31,13 +32,13 @@ if __name__ == "__main__":
         print("settings file required!")
         sys.exit()
         
-    strats.backtest.run(key_id,secret_key,True,['AAPL','GOOG','AMZN'])
-    # strats.backtest.run(key_id,secret_key,True,['AAPL','MSFT'])
-    
+    #strats.backtest.run(key_id,secret_key,True,['AAPL','GOOG','AMZN'])
+    #strats.backtest.run(key_id,secret_key,True,['AAPL','MSFT'])
+    IStrat = strats.indicatorstrat.IndicatorStrat(key_id,secret_key)
+    IStrat.run()
     #test.run()
     #alpaca = AlpacaConnection(logger, key_id, secret_key)
-    #alpha = AlphaParser(AlphaAPIKey)
-    #bot = DiscordBot(discordToken, alpha, alpaca,logger,user_id)
+    #bot = DiscordBot(discordToken, alpaca,logger,user_id)
     #bot.run()
     
     logging.shutdown()

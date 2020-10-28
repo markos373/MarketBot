@@ -17,11 +17,6 @@ class AlpacaConnection:
         self.header = { "APCA-API-KEY-ID":key_id, "APCA-API-SECRET-KEY":secret_key}
         self.key_id = key_id
         self.secret_key = secret_key
-        # stored by 'name' : 'id'
-        self.watchlists = {}
-
-        # initiating functions to grab values for use
-        self.getWatchlists()
 
     #Takes type, url, params
     def requestsFunc(self, type, endpoint, params):
@@ -90,34 +85,6 @@ class AlpacaConnection:
     def cancelAllOrders(self):
         self.api.cancel_all_orders()
 
-    def createWatchlist(self, wname):
-        params = { "name":wname, "symbols":[]}
-        r = self.requestsFunc('post', API_WATCHLIST_URL, params)
-        d = r.json()
-        id = d['id']
-        name = d['name']
-        self.watchlists[name] = id
-        return d
-    
-    # this function does not return anything. It should only be used inside the AlpacaConnection class.
-    # we do not want to call this everytime to get watchlists because we have limited requests
-    def getWatchlists(self):
-        r = self.requestsFunc('get', API_WATCHLIST_URL, {})
-        d = r.json()
-        for watchlist in d:
-            id = watchlist['id']
-            name = watchlist['name']
-            self.watchlists[name] = id
-    
-    def getAllWatchlists(self):
-        return self.watchlists.keys()
-
-    def viewWatchlist(self,name):
-        id = self.watchlists[name]
-        endpoint = API_WATCHLIST_URL+'/' + id
-        r = self.requestsFunc('get', endpoint, {})
-        return r.json()
-
     def addSymbol(self, name, ticker):
         id = self.watchlists[name]
         endpoint = API_WATCHLIST_URL + '/' + id
@@ -138,13 +105,7 @@ class AlpacaConnection:
             return "unable to remove symbol " + ticker + " from " + name
         else: 
             return "successfully removed symbol " + ticker + " from " + name
- 
-    def deleteWatchlist(self,name):
-        id = self.watchlists[name]
-        endpoint = API_WATCHLIST_URL + '/' + id
-        self.requestsFunc('delete', endpoint, {})
-        if name in self.watchlists.keys():
-            del self.watchlists[name]
+
 
     def buildErrorMessage(self, error):
         return str(error) + str(error.status_code)   

@@ -3,3 +3,4 @@ discord
 prettytable
 matplotlib
 pytest
+alpaca_backtrader_api

@@ -1,5 +1,8 @@
 settings.json
+launch.json
 *.pyc
-*.log
+src/*.log
 *.png
 /env/
+*.log
+*.cpython*
