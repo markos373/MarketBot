@@ -2,3 +2,4 @@ settings.json
 *.pyc
 *.log
 *.png
+/env/
