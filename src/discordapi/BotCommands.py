@@ -1,10 +1,26 @@
-from discordapi.BotFunctions import BotFunctions as bf
+from discordapi.BotFunctions import BotFunctions
 import asyncio
 # structure of the bot command
 # [Action] [Field1] [Field2]..
 
 default_msg = 'how can I help? (type \'help\' to see options)'
 
+'''
+Pipeline of parsing:
+call parse with given argumenets
+The parse then matches the operation using head of arguments
+And calls the given operation passing in the rest of arguments
+
+Each 'opertion' (help/longshort/etc..) function should return a TIPLE
+In case of returning message:   ('MSG_CONTENT',None,None)
+In case of returning operation: ('FUNCTION_TOCALL',arguments,is_async)
+The async check for some reason doesn't work, I think its because the async is being
+called from botfuncs which is not declared as 'async'. It's a corner case for 'longshort kill'
+'''
+
+#################################################################
+# DO NOT TAB THIS STUFF IT WILL MESS UP THE ALIGNMENT OF OUTPUT #
+#################################################################
 help_menus = {
     'default':  
 '''Command options:
@@ -40,9 +56,11 @@ def help(input,discordbot):
     menu = 'default'
     if not len(input) ==  0: menu = input.pop(0)
     assert(menu in help_menus.keys())
-    return help_menus[menu],[]
+    return help_menus[menu],[],False
 
 def longshort(input,discordbot):
+    print(input)
+    bf = BotFunctions(discordbot)
     # the dictionary needs to be inside method to use discordbot
     longshort_menus = {
     'default':
@@ -50,20 +68,24 @@ def longshort(input,discordbot):
     ex: longshort add AAPL,MMM''',
     'add': bf.LongShort_Add,
     'remove': bf.LongShort_Remove,
-    'run': [discordbot.start_instance,'longshort'],
-    'kill': discordbot.kill_instance,
-    'view': "Stock Universe: {}".format(list(discordbot.StockUniverse))
+    'run': bf.LongShort_Run,
+    'kill': bf.LongShort_Kill,
+    'view': bf.LongShort_View
     }
+
+    async_fns = ['kill']
+
     menu = 'default'
     if not len(input) ==  0: menu = input.pop(0)
     assert(menu in longshort_menus.keys())
     val = longshort_menus[menu]
-    args = []
     if type(val) is type(list()):
-        args = val[1:]
         val = val[0]
 
-    return val,args 
+    # max number of args for any longshort operation is 1
+    assert(len(input) <= 1)
+    args = input
+    return val,args,menu in async_fns
 
 commands = {
     'help': help,
@@ -72,10 +94,16 @@ commands = {
     # 'positions'
 }
 
-def parse(input,discordbot):
+def parse(inputstr,discordbot):
+    # dealing with commas and spaces here
+    inputstr = inputstr.replace(' , ',',')
+    inputstr = inputstr.replace(', ',',')
+    inputstr = inputstr.replace(' ,',',')
+    input = inputstr.split()
+
     assert(len(input)>0)
     # input is a list of strings containing the command
     com = input.pop(0)
-    if not com in commands: return default_msg
+    if not com in commands: return default_msg,None
     fn = commands[com]
     return fn(input,discordbot)

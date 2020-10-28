@@ -6,9 +6,7 @@ import asyncio
 from chartgen.imgGenerator import imgGenerator
 from discordapi.BotFunctions import BotFunctions,Pipe,create_pipe
 from discordapi.BotCommands import parse
-
-def is_async(func):
-    return asyncio.iscoroutinefunction(func)
+import inspect
 
 class DiscordBot:
     def __init__(self,token, alpaca, logger, user):
@@ -47,7 +45,6 @@ class DiscordBot:
                 return
             print(message.content)
             msg = ''
-            input = message.content.split()
             if not isinstance(message.channel,discord.DMChannel):
                 # skip if it is not dm
                 pass
@@ -60,12 +57,17 @@ class DiscordBot:
                 elif not self.user:
                     self.user = message.author
                 self.logger.info("Discord: User input = [{}]".format(message.content))
-                operation,arguments = parse(input,self)
+                operation,arguments,is_async = parse(message.content,self)
                 # if no operation, the operation variable contains the string
+                print('heres what i got\n{}\n{}'.format(operation,arguments))
                 if type(operation) is type('string'):
                     msg = operation
+                elif is_async:
+                    print('heyy this guy async')
+                    # checking if function is async or not
+                    msg = await operation(*arguments)
                 else:
-                    await operation(*arguments)
+                    msg = operation(*arguments)
                     
                 # elif 'show' in input:
                 #     picture = False
@@ -186,6 +188,7 @@ class DiscordBot:
         else:
             msg = "Longshort is already running!"
             self.logger.error('Discord: Algorithm is already running, skipping execution')
+        print('one must wonder')
         return msg
 
     def respondMention(self):

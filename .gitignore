@@ -5,3 +5,5 @@ src/*.log
 *.png
 *.log
 *.cpython*
+src/*/__pycache__/*
+src/AlphaVantage/__pycache__/AlphaParser.cpython-37.pyc
