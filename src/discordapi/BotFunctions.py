@@ -1,5 +1,6 @@
 import multiprocessing as mp
 from prettytable import PrettyTable
+import discord
 
 # Pipe class for talking to process
 
@@ -61,18 +62,34 @@ class BotFunctions:
         return msg
 
     def LongShort_Kill(self):
-        msg = self.dcbot.kill_instance()
-        return msg
+        # msg = self.dcbot.kill_instance()
+        return [(self.dcbot.kill_instance,{})]
     
     def LongShort_View(self):
         msg = "Stock Universe: {}".format(list(self.dcbot.StockUniverse))
         return msg
     
-    def Show_Goose(self):
-        goosepicture = 'img/madgoose.png'
-        return goosepicture
+    def Show_Goose(self,channel):
+        print('hey they let me go')
+        goosepicture = 'src/img/madgoose.png'
+        return [(channel.send,
+            {'file': discord.File(goosepicture)})]
     
-    def Show_Positions(self):
+    def Show_Positiions(self,channel):
+        pics = self.dcbot.img_gen.positions_chart()
+        if pics == 'invalid':
+            return 'Could not generate a positions chart!\nMaybe open some positions first?'
+        return [(channel.send,
+            {'file':pp}) for pp in pics]
+
+    def Show_Performance(self,channel,timeperiod='week'):
+        pic = self.dcbot.img_gen.portfolio_graph(timeperiod)
+        print(pic)
+        return [(channel.send,
+            {'file':pic})]
+
+
+    def Get_Positions(self):
         positions = self.dcbot.alpaca.listPositions()
         headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
         table = PrettyTable(headers)
@@ -80,3 +97,6 @@ class BotFunctions:
             table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
         msg = '```'+table.get_string()+'```'
         return msg
+
+    # def send_img(self,channel,img):
+    #     channel.send(file=img)

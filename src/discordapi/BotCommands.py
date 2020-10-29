@@ -1,4 +1,5 @@
 from discordapi.BotFunctions import BotFunctions
+import discordapi.BotResponses as br
 import asyncio
 # structure of the bot command
 # [Action] [Field1] [Field2]..
@@ -18,60 +19,16 @@ The async check for some reason doesn't work, I think its because the async is b
 called from botfuncs which is not declared as 'async'. It's a corner case for 'longshort kill'
 '''
 
-#################################################################
-# DO NOT TAB THIS STUFF IT WILL MESS UP THE ALIGNMENT OF OUTPUT #
-#################################################################
-help_menus = {
-    'default':  
-'''Command options:
-    - **longshort**
-    - **show**
-    - **positions**
-For more help, enter: help [command]''',
-    'longshort':
-'''**longshort** command options:
-    -**add**    | info: add symbol to longshort (multiple symbols allowed, separate with \',\')
-        enter: longshort add [symbol]\n
-    -**remove** | info: remove symbol from longshort (multiple symbols allowed, separate with \',\')
-        enter: longshort remove [symbol]\n
-    -**run**    | info: start longshort
-        enter: longshort run\n
-    -**kill**   | info: terminate longshort\n
-        enter: longshort kill\n
-    -**view**   | info: view all symbols in longshort
-        enter: longshort view\n''',
-    'show':
-'''**show** command options:
-    -**positions**   | info: displays positions chart
-        enter: show positions\n
-    -**performance** | info: displays past week performance graph
-        enter: show performance\n''',
-    'positions':
-'''**positions** command options:\n
-    -**positions**   | info: displays positions table
-        enter: positions\n'''
-}
-
-def help(input,discordbot):
+def help(input,discordbot,*_):
     menu = 'default'
     if not len(input) ==  0: menu = input.pop(0)
-    assert(menu in help_menus.keys())
-    return help_menus[menu],[],False
+    assert(menu in br.help_menus.keys())
+    return br.help_menus[menu],[]
 
-def longshort(input,discordbot):
+def longshort(input,discordbot,*_):
     print(input)
-    bf = BotFunctions(discordbot)
-    # the dictionary needs to be inside method to use discordbot
-    longshort_menus = {
-    'default':
-'''longshort [add/remove] TICKER,TICKER
-    ex: longshort add AAPL,MMM''',
-    'add': bf.LongShort_Add,
-    'remove': bf.LongShort_Remove,
-    'run': bf.LongShort_Run,
-    'kill': bf.LongShort_Kill,
-    'view': bf.LongShort_View
-    }
+    # the dictionary needs to be called through function because of discordbot context
+    longshort_menus = br.get_ls_menus(BotFunctions(discordbot))
 
     async_fns = ['kill']
 
@@ -85,25 +42,38 @@ def longshort(input,discordbot):
     # max number of args for any longshort operation is 1
     assert(len(input) <= 1)
     args = input
-    return val,args,menu in async_fns
+    return val,args
+
+def show(input,discordbot,channel,*_):
+    menu = 'default'
+    show_menus = br.get_show_menus(BotFunctions(discordbot))
+    if not len(input) ==  0: menu = input.pop(0)
+    assert(menu in show_menus.keys())
+    val = show_menus[menu]
+    args = input
+    args.insert(0,channel)
+    return val,args
 
 commands = {
     'help': help,
-    'longshort': longshort
-    # 'show'
+    'longshort': longshort,
+    'show': show
     # 'positions'
 }
 
-def parse(inputstr,discordbot):
+def parse(msg,discordbot):
     # dealing with commas and spaces here
+    inputstr = msg.content
     inputstr = inputstr.replace(' , ',',')
     inputstr = inputstr.replace(', ',',')
     inputstr = inputstr.replace(' ,',',')
     input = inputstr.split()
 
+    # for sending images, we need to know the channel
+    channel = msg.channel
     assert(len(input)>0)
     # input is a list of strings containing the command
     com = input.pop(0)
     if not com in commands: return default_msg,None
     fn = commands[com]
-    return fn(input,discordbot)
+    return fn(*[input,discordbot,channel])

@@ -8,6 +8,9 @@ from discordapi.BotFunctions import BotFunctions,Pipe,create_pipe
 from discordapi.BotCommands import parse
 import inspect
 
+def is_str(word):
+    return type(word) == type('str')
+
 class DiscordBot:
     def __init__(self,token, alpaca, logger, user):
         self.client = discord.Client()
@@ -57,36 +60,24 @@ class DiscordBot:
                 elif not self.user:
                     self.user = message.author
                 self.logger.info("Discord: User input = [{}]".format(message.content))
-                operation,arguments,is_async = parse(message.content,self)
+                operation,arguments = parse(message,self)
                 # if no operation, the operation variable contains the string
-                print('heres what i got\n{}\n{}'.format(operation,arguments))
-                if type(operation) is type('string'):
+                if is_str(operation):
                     msg = operation
-                elif is_async:
-                    print('heyy this guy async')
-                    # checking if function is async or not
-                    msg = await operation(*arguments)
+                # elif is_async:
+                #     print('heyy this guy async')
+                #     # checking if function is async or not
+                #     msg = await operation(*arguments)
                 else:
                     msg = operation(*arguments)
-                    
-                # elif 'show' in input:
-                #     picture = False
-                #     if 'goose' in input:
-                #         goosepicture = 'img/madgoose.png'
-                #         picture = discord.File(goosepicture)
-                #     elif 'positions' in input:
-                #         picture = self.img_gen.positions_chart()
-                #         if len(picture) > 1: 
-                #             await message.channel.send(file=picture[0])
-                #             picture = picture[1]
-                #     elif 'performance' in input:
-                #         timeperiod = 'week'
-                #         if len(input) > input.index('performance')+1:
-                #             timeperiod = input[input.index('performance')+1]
-                #         picture = self.img_gen.portfolio_graph(timeperiod)
-                #     if picture and picture != 'invalid': await message.channel.send(file = picture)
-                #     elif picture == 'invalid': msg = 'No positions to display!'
-                #     else: msg = '''show [positions/performance] \n      ex: show performance [day/week/month]'''
+                # if the message is not a string, 
+                # it is an async function that needs to be evaluated
+                # it will come in a nested form of tuples in lists
+                if not is_str(msg):
+                    for m in msg:
+                        msg = await m[0](**m[1])
+                    if not is_str(msg): msg = ''
+                
                 # elif 'positions' in input:
                 #     positions = self.alpaca.listPositions()
                 #     headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
@@ -188,7 +179,6 @@ class DiscordBot:
         else:
             msg = "Longshort is already running!"
             self.logger.error('Discord: Algorithm is already running, skipping execution')
-        print('one must wonder')
         return msg
 
     def respondMention(self):
