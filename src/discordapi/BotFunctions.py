@@ -1,5 +1,6 @@
 import multiprocessing as mp
 from prettytable import PrettyTable
+import discord
 
 # Pipe class for talking to process
 
@@ -31,54 +32,71 @@ def create_pipe():
 
     return p1,p2
 
+
+# I think these functions should be named more generically, 
+# because a lot of these operations (run,kill,add,view ..) can apply to any other algo that is not longshort.
 class BotFunctions:
-    def __init__(self):
-        pass
+    def __init__(self,discordbot):
+        self.dcbot = discordbot
     
-    def LongShort_Add(StockUniverse,input):
+    # required arg: input
+    def LongShort_Add(self,inputstr):
+        StockUniverse = self.dcbot.StockUniverse
+        assert(type(inputstr) == type('string'))
+        input = inputstr.split(',')
+        # the input must be an array of length 1 or greater
+        for i in input: StockUniverse.add(i)
+        return 'Adding {}'.format(input)
+
+    # required arg: input
+    def LongShort_Remove(self,inputstr):
+        StockUniverse = self.dcbot.StockUniverse
+        assert(type(inputstr) == type('string'))
+        input = inputstr.split(',')
         #Add Typecheck
-        msg = 'Adding {}'
-        if ',' in input[input.index('add')+1]:
-            addlist = set(input[input.index('add')+1].split(","))
-            msg = msg.format(list(addlist))
-            StockUniverse.update(addlist)
-        else:
-            addlist = str(input[input.index('add')+1])
-            msg = msg.format(addlist)
-            StockUniverse.add(addlist)
+        for i in input: StockUniverse.discard(i)      
+        return 'Removing {}'.format(input)
+    
+    def LongShort_Run(self):
+        msg = self.dcbot.start_instance("longshort")
         return msg
 
-    def LongShort_Remove(self,StockUniverse,input):
-        #Add Typecheck
-        msg = 'Removing {}'
-        if ',' in input[input.index('remove')+1]:
-            rmlist = set(input[input.index('remove')+1].split(","))
-            msg = msg.format(list(rmlist))
-            for thing in rmlist:
-                StockUniverse.discard(thing)
-        else:
-            rmlist = str(input[input.index('remove')+1])
-            msg = msg.format(rmlist)
-            StockUniverse.remove(rmlist)      
-        return msg
-
-    def LongShort_Run(self, pipe):
-        msg = self.start_instance(pipe,"longshort")
-        return msg
-
-    def LongShort_View(StockUniverse):
-        msg = "Stock Universe: {}".format(list(StockUniverse))
+    def LongShort_Kill(self):
+        # msg = self.dcbot.kill_instance()
+        return [(self.dcbot.kill_instance,{})]
+    
+    def LongShort_View(self):
+        msg = "Stock Universe: {}".format(list(self.dcbot.StockUniverse))
         return msg
     
-    def Show_Goose():
-        goosepicture = 'img/madgoose.png'
-        return goosepicture
+    def Show_Goose(self,channel):
+        print('hey they let me go')
+        goosepicture = 'src/img/madgoose.png'
+        return [(channel.send,
+            {'file': discord.File(goosepicture)})]
     
-    def Show_Positions(self):
-        positions = self.alpaca.listPositions()
+    def Show_Positiions(self,channel):
+        pics = self.dcbot.img_gen.positions_chart()
+        if pics == 'invalid':
+            return 'Could not generate a positions chart!\nMaybe open some positions first?'
+        return [(channel.send,
+            {'file':pp}) for pp in pics]
+
+    def Show_Performance(self,channel,timeperiod='week'):
+        pic = self.dcbot.img_gen.portfolio_graph(timeperiod)
+        print(pic)
+        return [(channel.send,
+            {'file':pic})]
+
+
+    def Get_Positions(self):
+        positions = self.dcbot.alpaca.listPositions()
         headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
         table = PrettyTable(headers)
         for position in positions:
             table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
         msg = '```'+table.get_string()+'```'
         return msg
+
+    # def send_img(self,channel,img):
+    #     channel.send(file=img)

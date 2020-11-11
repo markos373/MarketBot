@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta as rd
 import os
 import numpy as np
 
-img_prefix = 'img/'
+img_prefix = 'src/img/'
 
 class imgGenerator:
     def __init__(self,alpaca,logger):
@@ -56,9 +56,9 @@ class imgGenerator:
                 plt.close()
                 self.logger.info('ChartGenerator: Created '+img_prefix+sfilename+' for output')
                 ss = self.prep(sfilename)
-            if ll and ss: return ll,ss
-            elif ll: return ll
-            elif ss: return ss
+            if ll and ss: return [ll,ss]
+            elif ll: return [ll]
+            elif ss: return [ss]
         else: return 'invalid'
     
     # base method for generating portfolio graphs. 

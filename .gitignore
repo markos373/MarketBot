@@ -3,5 +3,8 @@ launch.json
 *.pyc
 src/*.log
 *.png
+/env/
 *.log
 *.cpython*
+src/*/__pycache__/*
+src/AlphaVantage/__pycache__/AlphaParser.cpython-37.pyc
