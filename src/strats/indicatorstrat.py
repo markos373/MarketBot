@@ -92,23 +92,41 @@ class IndicatorStrat(BaseStrat):
       top_ten.append(data[i][0])
 
     orders = calc_allocations(top_ten)
-
-    execute_trades(orders)
-    print(self.get_buying_power().buying_power)
+    print("TEST")
+    buying_power = self.get_buying_power()
+    #self.execute_trades(buying_power,orders)
+    #print(self.get_buying_power().buying_power)
+    
     #get allocations, get buying power, calculate budget per stock, calculate units per stock, execute trade
     return
-    #
-    # pos_alloc = 1.0 / max_positions
 
-    # while not self.stop:
-    #     for stock in self.allStocks:
-    #         if get_action(ticker):
-    #             #place buy
-    #         else:
-    #             #sell
             
   def get_buying_power(self):
-    return self.alpaca.get_account()
+    return self.alpaca.get_account().buying_power
+
+
+  def submitOrder(self, qty, stock, side, resp):
+    if(qty > 0):
+      try:
+        self.alpaca.submit_order(stock, qty, side, "market", "day")
+        self.m_queue.add_msg("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
+        resp.append(True)
+      except:
+        self.m_queue.add_msg("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
+        resp.append(False)
+    else:
+      self.m_queue.add_msg("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
+      resp.append(True)
+
+  def execute_trades(self, buying_power,orders):
+    resp = []
+    for order in orders:
+      dollar_alloc = buying_power * order[1] # calc alloc
+      quantity = dollar_alloc // self.alpaca.getTicker(order[0])
+      self.submitOrder(quantity, order[0], "buy", resp)
+
+    
+
 
 def get_most_recent(data,indicator):
   '''
@@ -130,10 +148,7 @@ def calc_allocations(tickers):
   return orders
   
 
-def execute_trades(orders):
 
-  for order in orders:
-    print(order)  
 
 def parse_csv(fp):
   data = []
