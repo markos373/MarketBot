@@ -6,6 +6,7 @@ import multiprocessing as mp
 from .basestrat import BaseStrat
 import csv
 from AlphaVantage import AlphaParser
+from polygon.PolyWrapper import PolyWrapper
 
 API_KEY = None
 API_SECRET = None
@@ -17,7 +18,10 @@ class IndicatorStrat(BaseStrat):
     API_KEY = _API_KEY
     API_SECRET = _API_SECRET
     #self.alpha_instance = alpha_instance
+    
     self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
+    super().__init__(pipe,logger,self.alpaca)
+    self.poly = PolyWrapper(API_KEY)
     #super().__init__(pipe,logger,self.alpaca)
     # Format the allStocks variable for use in the class.
     self.allStocks = stockUniverse.copy()
@@ -92,17 +96,19 @@ class IndicatorStrat(BaseStrat):
       top_ten.append(data[i][0])
 
     orders = calc_allocations(top_ten)
-    print("TEST")
     buying_power = self.get_buying_power()
-    #self.execute_trades(buying_power,orders)
-    #print(self.get_buying_power().buying_power)
     
+    resp = self.execute_trades(buying_power,orders)
+    #print(self.get_buying_power().buying_power)
+    print(resp)
     #get allocations, get buying power, calculate budget per stock, calculate units per stock, execute trade
+
+    #EXIT STRAT: develop get_action to determine if we should sell out
     return
 
             
   def get_buying_power(self):
-    return self.alpaca.get_account().buying_power
+    return float(self.alpaca.get_account().buying_power)
 
 
   def submitOrder(self, qty, stock, side, resp):
@@ -120,10 +126,13 @@ class IndicatorStrat(BaseStrat):
 
   def execute_trades(self, buying_power,orders):
     resp = []
+    print("Buying Power: : {}".format(buying_power))
     for order in orders:
+      
       dollar_alloc = buying_power * order[1] # calc alloc
-      quantity = dollar_alloc // self.alpaca.getTicker(order[0])
+      quantity = dollar_alloc // self.poly.getLastQuote(order[0])
       self.submitOrder(quantity, order[0], "buy", resp)
+    return resp
 
     
 
@@ -141,7 +150,7 @@ def get_most_recent(data,indicator):
   return recent[indicator]
 
 def calc_allocations(tickers):
-  max_alloc = 1.0 // len(tickers)
+  max_alloc = 1.0 / len(tickers)
   orders = []
   for ticker in tickers:
     orders.append((ticker,max_alloc))
