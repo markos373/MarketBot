@@ -22,8 +22,6 @@ class IndicatorStrat(BaseStrat):
     self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
     super().__init__(pipe,logger,self.alpaca)
     self.poly = PolyWrapper(API_KEY)
-    #super().__init__(pipe,logger,self.alpaca)
-    # Format the allStocks variable for use in the class.
     self.allStocks = stockUniverse.copy()
     self.logger = logger
     self.timeToClose = None
@@ -51,6 +49,9 @@ class IndicatorStrat(BaseStrat):
       return True
 
   def submitOrder(self, qty, stock, side, resp):
+    '''
+    Wrapper for Alpaca API submit_order.  Returns response in resp as list.
+    '''
     if(qty > 0):
       try:
         self.alpaca.submit_order(stock, qty, side, "market", "day")
@@ -64,11 +65,21 @@ class IndicatorStrat(BaseStrat):
       resp.append(True)
 
   def run(self):
+    '''
+    Core of bot.  Will repeat on startup
+    '''
     # First, cancel any existing orders so they don't impact our buying power.
     orders = self.alpaca.list_orders(status="open")
     for order in orders:
       self.alpaca.cancel_order(order.id)
-
+    
+    positions = self.alpaca.getPositions()
+    
+    for position in positions:
+      if position["unrealized_plpc"] > 0.1: #10% GAIN or more, sell a quarter!
+        self.submitOrder(position["quantity"]//4, position["ticker"], "sell", resp) 
+        
+      
     # Wait for market to open.
     '''
     uncomment when real testing
@@ -108,23 +119,16 @@ class IndicatorStrat(BaseStrat):
 
             
   def get_buying_power(self):
+    '''
+    Get current buying power of account as a float
+    '''
     return float(self.alpaca.get_account().buying_power)
 
-
-  def submitOrder(self, qty, stock, side, resp):
-    if(qty > 0):
-      try:
-        self.alpaca.submit_order(stock, qty, side, "market", "day")
-        self.m_queue.add_msg("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
-        resp.append(True)
-      except:
-        self.m_queue.add_msg("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
-        resp.append(False)
-    else:
-      self.m_queue.add_msg("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
-      resp.append(True)
-
   def execute_trades(self, buying_power,orders):
+    '''
+    Execute a list of trades in the format [(ticker, pct_allocation),...]
+    Calculates appropriate shares based on buying power and percent allocation.
+    '''
     resp = []
     print("Buying Power: : {}".format(buying_power))
     for order in orders:
@@ -150,6 +154,9 @@ def get_most_recent(data,indicator):
   return recent[indicator]
 
 def calc_allocations(tickers):
+  '''
+  Evenly distribute portfolio allocation across N tickers
+  '''
   max_alloc = 1.0 / len(tickers)
   orders = []
   for ticker in tickers:
@@ -160,6 +167,9 @@ def calc_allocations(tickers):
 
 
 def parse_csv(fp):
+  '''
+  Read file fp and return data as list in format [(ticker, rating)] (using undervalued.csv)
+  '''
   data = []
   with open(fp) as csvfile:
     read = csv.reader(csvfile)
