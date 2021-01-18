@@ -7,5 +7,7 @@ src/*.log
 *.log
 *.cpython*
 src/*/__pycache__/*
-src/AlphaVantage/__pycache__/AlphaParser.cpython-37.pyc
+src/AlphaVantage/__pycache__
 src/data/*.txt
+src/img/*.png
+/__pycache__/*
