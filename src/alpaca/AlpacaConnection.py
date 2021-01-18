@@ -59,7 +59,12 @@ class AlpacaConnection:
             "time_in_force":tz
         }
         r = self.api.submit_order(ticker,qty,side,ordertype,tz)
-        print(r)
+        return r
+
+    def closePositions(self):
+        url = APCA_API_BASE_URL + "/v2/positions"
+        r = self.requestsFunc('delete', url, {})
+        return r
 
     def getAccountInformation(self):
         r = self.requestsFunc('get', API_ACCOUNT_URL, {})

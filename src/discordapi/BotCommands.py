@@ -44,6 +44,25 @@ def longshort(input,discordbot,*_):
     args = input
     return val,args
 
+def indicatorstrat(input,discordbot,*_):
+    print(input)
+    # the dictionary needs to be called through function because of discordbot context
+    istrat_menus = br.get_istrat_menus(BotFunctions(discordbot))
+
+    async_fns = ['kill']
+
+    menu = 'default'
+    if not len(input) ==  0: menu = input.pop(0)
+    assert(menu in istrat_menus.keys())
+    val = istrat_menus[menu]
+    if type(val) is type(list()):
+        val = val[0]
+
+    # max number of args for any longshort operation is 1
+    assert(len(input) <= 1)
+    args = input
+    return val,args
+
 def show(input,discordbot,channel,*_):
     menu = 'default'
     show_menus = br.get_show_menus(BotFunctions(discordbot))
@@ -57,8 +76,8 @@ def show(input,discordbot,channel,*_):
 commands = {
     'help': help,
     'longshort': longshort,
+    'istrat' : indicatorstrat,
     'show': show
-    # 'positions'
 }
 
 def parse(msg,discordbot):

@@ -69,6 +69,14 @@ class BotFunctions:
         msg = "Stock Universe: {}".format(list(self.dcbot.StockUniverse))
         return msg
     
+    def IndicatorStrat_Run(self):
+        msg = self.dcbot.start_instance("indicator")
+        return msg
+
+    def IndicatorStrat_Kill(self):
+        # msg = self.dcbot.kill_instance()
+        return [(self.dcbot.kill_instance,{})]
+
     def Show_Goose(self,channel):
         print('hey they let me go')
         goosepicture = 'src/img/madgoose.png'
@@ -89,7 +97,7 @@ class BotFunctions:
             {'file':pic})]
 
 
-    def Get_Positions(self):
+    def Get_Positions(self, channel):
         positions = self.dcbot.alpaca.listPositions()
         headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
         table = PrettyTable(headers)

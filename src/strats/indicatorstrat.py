@@ -4,8 +4,10 @@ import time
 import datetime
 import multiprocessing as mp
 from .basestrat import BaseStrat
+from data import scraper
 import csv
 from AlphaVantage import AlphaParser
+from alpaca.AlpacaConnection import AlpacaConnection
 from polygon.PolyWrapper import PolyWrapper
 
 API_KEY = None
@@ -18,7 +20,8 @@ class IndicatorStrat(BaseStrat):
     API_KEY = _API_KEY
     API_SECRET = _API_SECRET
     #self.alpha_instance = alpha_instance
-    
+    #TODO: Replace alpaca with alpaca_wrapper
+    self.alpaca_wrapper = AlpacaConnection(logger, API_KEY, API_SECRET)
     self.alpaca = tradeapi.REST(API_KEY, API_SECRET, APCA_API_BASE_URL, 'v2')
     super().__init__(pipe,logger,self.alpaca)
     self.poly = PolyWrapper(API_KEY)
@@ -28,38 +31,18 @@ class IndicatorStrat(BaseStrat):
 
     #self.logger.info("Indicator Strat: Algorithm initiated")
 
-  def get_action(self,ticker):
-    '''
-    Run calculations
-    Return True for buy, False for sell
-    '''
-    data = self.alpha_instance.getSMA(ticker, "daily", 20, "open")
-    short_term = get_most_recent(data,"SMA")
-
-    data = self.alpha_instance.getSMA(ticker, "daily", 100, "open")
-    long_term = get_most_recent(data,"SMA")
-    
-    print("short: {} vs long: {}".format(short_term,long_term))
-
-    data = self.alpha_instance.getRSI(ticker, "daily", 90, "open")
-    rsi_short_term = get_most_recent(data,"RSI")
-    if short_term > long_term and rsi_short_term < 0.3:
-      return False
-    else:
-      return True
-
   def submitOrder(self, qty, stock, side, resp):
     '''
     Wrapper for Alpaca API submit_order.  Returns response in resp as list.
     '''
     if(qty > 0):
       try:
-        self.alpaca.submit_order(stock, qty, side, "market", "day")
+        self.alpaca_wrapper.submitOrder(stock, qty, side, "market", "day")
         self.m_queue.add_msg("Market order of | " + str(qty) + " " + stock + " " + side + " | completed.")
         resp.append(True)
-      except:
+      except Exception as e:
         self.m_queue.add_msg("Order of | " + str(qty) + " " + stock + " " + side + " | did not go through.")
-        resp.append(False)
+        resp.append((False, e))
     else:
       self.m_queue.add_msg("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
       resp.append(True)
@@ -73,11 +56,8 @@ class IndicatorStrat(BaseStrat):
     for order in orders:
       self.alpaca.cancel_order(order.id)
     
-    positions = self.alpaca.getPositions()
-    
-    for position in positions:
-      if position["unrealized_plpc"] > 0.1: #10% GAIN or more, sell a quarter!
-        self.submitOrder(position["quantity"]//4, position["ticker"], "sell", resp) 
+    #Reset orders
+    self.alpaca_wrapper.closePositions()
         
       
     # Wait for market to open.
@@ -101,20 +81,38 @@ class IndicatorStrat(BaseStrat):
       self.m_queue.add_msg("Quantity is 0, order of | " + str(qty) + " " + stock + " " + side + " | not completed.")
       resp.append(True)
     '''
-    data = parse_csv(UNDERVALUED_DATA)
-    top_ten = []
-    for i in range(1,11):
-      top_ten.append(data[i][0])
+    
 
+    #for position in positions:
+    #  if position["unrealized_plpc"] > 0.1: #10% GAIN or more, sell a quarter!
+    #    self.submitOrder(position["quantity"]//4, position["ticker"], "sell", resp) 
+    #data = parse_csv(UNDERVALUED_DATA)
+    
+    tickers = scraper.QQ_main()
+    top_ten = []
+    curr_index = 0
+    while(len(top_ten) < 10):
+      try:
+        asset = self.alpaca.get_asset(tickers[curr_index][0])
+        if asset.tradable:
+          top_ten.append(tickers[curr_index][0])
+        else:
+          curr_index += 1
+      except:
+          curr_index += 1
+      curr_index += 1
+
+      
+    print(top_ten)
     orders = calc_allocations(top_ten)
+
+    time.sleep(2)
     buying_power = self.get_buying_power()
     
-    resp = self.execute_trades(buying_power,orders)
-    #print(self.get_buying_power().buying_power)
-    print(resp)
-    #get allocations, get buying power, calculate budget per stock, calculate units per stock, execute trade
+    resp = self.execute_trades(buying_power,orders, 0)
 
-    #EXIT STRAT: develop get_action to determine if we should sell out
+    print(resp)
+
     return
 
             
@@ -124,34 +122,30 @@ class IndicatorStrat(BaseStrat):
     '''
     return float(self.alpaca.get_account().buying_power)
 
-  def execute_trades(self, buying_power,orders):
+
+  def execute_trades(self, buying_power,orders, dbg=0):
     '''
     Execute a list of trades in the format [(ticker, pct_allocation),...]
     Calculates appropriate shares based on buying power and percent allocation.
     '''
     resp = []
-    print("Buying Power: : {}".format(buying_power))
+    
+    if dbg:
+      print("Buying Power: : {}".format(buying_power))
     for order in orders:
       
       dollar_alloc = buying_power * order[1] # calc alloc
       quantity = dollar_alloc // self.poly.getLastQuote(order[0])
-      self.submitOrder(quantity, order[0], "buy", resp)
+      if dbg:
+        print("Order: {}, {}, {} | ALLOCATION : {}".format(quantity,order[0],"buy",dollar_alloc))
+      else:  
+        self.submitOrder(quantity, order[0], "buy", resp)
+      
+      
+
     return resp
 
-    
-
-
-def get_most_recent(data,indicator):
-  '''
-  Takes raw AlphaVantage data, with indicator such as "SMA","EMA",etc... and returns most recent value
-  '''
-  ta_str = "Technical Analysis: {}".format(indicator)
-  ta_data = data[ta_str]
-  recent = None
-  for date in ta_data:
-    recent = ta_data[date]
-    break
-  return recent[indicator]
+  
 
 def calc_allocations(tickers):
   '''

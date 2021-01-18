@@ -34,14 +34,14 @@ if __name__ == "__main__":
         
     #strats.backtest.run(key_id,secret_key,True,['AAPL','GOOG','AMZN'])
     #strats.backtest.run(key_id,secret_key,True,['AAPL','MSFT'])
-    IStrat = strats.indicatorstrat.IndicatorStrat(key_id,secret_key)
-    IStrat.run()
+    #IStrat = strats.indicatorstrat.IndicatorStrat(key_id,secret_key)
+    #IStrat.run()
     #test.run()
-
+    
     #change to pass key_id,secret_key and create Alpaca instance in DiscordBot __init__
-    #alpaca = AlpacaConnection(logger, key_id, secret_key)
-    #bot = DiscordBot(discordToken, alpaca,logger,user_id)
-    #bot.run()
+    alpaca = AlpacaConnection(logger, key_id, secret_key)
+    bot = DiscordBot(discordToken, alpaca,logger,user_id)
+    bot.run()
     
     logging.shutdown()
 

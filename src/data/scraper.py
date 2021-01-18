@@ -1,6 +1,8 @@
 import requests
 import json
 from bs4 import BeautifulSoup
+from datetime import datetime as dt
+import dateutil.relativedelta
 
 TICKER_TRAK_URL = "http://tickertrak.com/"
 QQ_SENATE_URL = "https://www.quiverquant.com/sources/senatetrading"
@@ -31,35 +33,41 @@ def get_file_contents(path):
         src = fp.read()
     return src
 
-def get_ticker_frequency(list): 
+def get_ticker_frequency(list, lookback_months): 
     #TODO: Currently we look back an entire year.  Maybe cut down to ~1-3 months?
     #List of lists in the format ['BAC', '15798240001/24/2020', 'Perdue, David', 'Sale', '$1,001 - $15,000', 'R']
     freqs = dict()
     for item in list:
-        if len(item[0]) > 6 or item[4] != '$50,001 - $100,000':
-            #Bad data in source or not large enough purchase... skip it
+
+        if len(item[0]) > 6:
+            #Bad data in source
             continue
 
-        if item[0] not in freqs:
+        date_index = item[1].find("/")
+        trade_date = dt.strptime(item[1][date_index-2:],"%m/%d/%Y")
+        date_bound = dt.now() + dateutil.relativedelta.relativedelta(months=-1 * lookback_months)
+
+        if trade_date < date_bound:# or item[4] == '$1,001 - $15,000': #Small purchases / out of date bound -> SKIP
+            continue
+
+        if item[0] not in freqs: #Initialize
             freqs[item[0]] = dict()
-            if item[3] == 'Sale':
-                freqs[item[0]]['buy'] = 0
-                freqs[item[0]]['sell'] = 1
-            else:
-                freqs[item[0]]['buy'] = 1
-                freqs[item[0]]['sell'] = 0
+            freqs[item[0]]['buy'] = 0
+            freqs[item[0]]['sell'] = 0
+            freqs[item[0]]['unique_participants'] = set()
+
+        freqs[item[0]]['unique_participants'].add(item[2])
+        if item[3] == 'Sale':
+            freqs[item[0]]['sell'] += 1
         else:
-            if item[3] == 'Sale':
-                freqs[item[0]]['sell'] += 1
-            else:
-                freqs[item[0]]['buy'] += 1
+            freqs[item[0]]['buy'] += 1
 
     return freqs
 
 
 def QQ_main():
-    QQ_house_outfile = "housetrading.txt"
-    QQ_senate_outfile = "senatetrading.txt"
+    QQ_house_outfile = "data/housetrading.txt"
+    QQ_senate_outfile = "data/senatetrading.txt"
     
     #Store page source in files
     house_src = get_file_contents(QQ_house_outfile)
@@ -75,13 +83,15 @@ def QQ_main():
 
     #Merge + categorize buy / sells
     merged_list = house_list + senate_list
-    merged_dict = get_ticker_frequency(merged_list)
+    merged_dict = get_ticker_frequency(merged_list,3)
     #house_dict = get_ticker_frequency(house_list)
     #senate_dict = get_ticker_frequency(senate_list)
 
-    #Temp data view
-    for item in merged_dict.keys():
-        print("ticker: {} | {}".format(item,merged_dict[item]))
+    #Sort by buy to sell ratios
+    ticker_list = sorted(merged_dict.items(), key=lambda k_v: k_v[1]['buy']/(1 if k_v[1]['sell']==0 else k_v[1]['sell']), reverse=True)
+    #for i in range(15):
+    #    print(ticker_list[i])
+    return ticker_list
     
 
 

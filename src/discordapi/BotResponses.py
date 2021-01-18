@@ -29,7 +29,9 @@ For more help, enter: help [command]''',
     'positions':
 '''**positions** command options:\n
     -**positions**   | info: displays positions table
-        enter: positions\n'''
+        enter: positions\n''',
+    'account':
+    '''**account** | info: display holdings as table\n'''
 }
 
 def get_ls_menus(bf):
@@ -44,10 +46,20 @@ def get_ls_menus(bf):
     'view': bf.LongShort_View
     }
 
+def get_istrat_menus(bf):
+    return {
+    'default':
+'''istrat run
+    ex: istrat run''',
+    'run': bf.IndicatorStrat_Run,
+    'kill': bf.IndicatorStrat_Kill,
+    }
+
 def get_show_menus(bf):
     return{
     'default': 'Specify what you would like to see!',
     'goose': bf.Show_Goose, 
     'positions': bf.Show_Positiions,
     'performance': bf.Show_Performance,
+    'account' : bf.Get_Positions,
 }

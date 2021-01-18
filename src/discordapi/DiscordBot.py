@@ -77,48 +77,6 @@ class DiscordBot:
                     for m in msg:
                         msg = await m[0](**m[1])
                     if not is_str(msg): msg = ''
-                
-                # elif 'positions' in input:
-                #     positions = self.alpaca.listPositions()
-                #     headers = ["Symbol","Avg Buy Price","Curr Price","Qty","Curr Diff"]
-                #     table = PrettyTable(headers)
-                #     for position in positions:
-                #         table.add_row([position.symbol,position.avg_entry_price,position.current_price,position.qty,position.unrealized_pl])
-                #     msg = '```'+table.get_string()+'```'
-                #     print(table)
-                # elif 'istrat' in input:
-                #     if 'add' in input:
-                #         msg = 'adding {}'
-                #         if ',' in input[input.index('add')+1]:
-                #             addlist = set(input[input.index('add')+1].split(","))
-                #             msg = msg.format(list(addlist))
-                #             self.StockUniverse.update(addlist)
-                #         else:
-                #             addlist = str(input[input.index('add')+1])
-                #             msg = msg.format(addlist)
-                #             self.StockUniverse.add(addlist)
-                        
-                #     elif 'remove' in input:
-                #         msg = 'removing {}'
-                #         if ',' in input[input.index('remove')+1]:
-                #             rmlist = set(input[input.index('remove')+1].split(","))
-                #             msg = msg.format(list(rmlist))
-                #             for thing in rmlist:
-                #                 self.StockUniverse.discard(thing)
-                #         else:
-                #             rmlist = str(input[input.index('remove')+1])
-                #             msg = msg.format(rmlist)
-                #             self.StockUniverse.remove(rmlist)                      
-                #     elif 'run' in input:
-                #         msg = self.start_instance(p2,"indicator")
-                #     elif 'kill' in input:
-                #         msg = await self.kill_instance()
-                #     elif 'view' in input:
-                #         msg = "Stock Universe: {}".format(list(self.StockUniverse))
-                #     else:
-                #         msg = """indicatorstrat [add/remove] TICKER,TICKER\n        ex: indicatorstrat add AAPL,MMM"""
-                # else:
-                #     msg = 'how can I help? (type \'help\' to see options)'
             if msg:
                 await message.channel.send(msg)
 
@@ -170,14 +128,14 @@ class DiscordBot:
             if algo == "longshort":
                 self.algo = LongShort(self.alpaca.key_id, self.alpaca.secret_key,pipe,self.logger,self.StockUniverse)
             if algo == "indicator":
-                self.algo = IndicatorStrat(self.alpha,self.alpaca.key_id, self.alpaca.secret_key,pipe,self.logger,self.StockUniverse)
+                self.algo = IndicatorStrat(self.alpaca.key_id, self.alpaca.secret_key,pipe,self.logger,self.StockUniverse)
             # self.instance = mp.Process(target=self.algo.run)
             self.instance = threading.Thread(target = self.algo.run)
             self.instance.start()
             self.instance_kill = False
             self.logger.info('Discord: Algorithm initiated')
         else:
-            msg = "Longshort is already running!"
+            msg = "{} is already running!".format(algo)
             self.logger.error('Discord: Algorithm is already running, skipping execution')
         return msg
 
