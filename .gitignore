@@ -10,4 +10,4 @@ src/*/__pycache__/*
 src/AlphaVantage/__pycache__
 src/data/*.txt
 src/img/*.png
-/__pycache__/*
+/__pycache__
